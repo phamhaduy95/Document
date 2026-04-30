@@ -1,81 +1,70 @@
-Sometimes, you may end up writing long and complex LINQ query. One of
-straightforward solutions to reduce the complexity is to break the big
-complicated query into smaller intermediate ones. There are some
-strategies for achieving this.
+# Composite LINQ Queries
 
-**Progressive Query Building**
+When writing long and complex LINQ queries, it is often helpful to break them down into smaller, more manageable parts. This improves readability and maintainability.
 
-The approach is mostly used for fluent syntax. As fluent syntax support
-chaining multiple operators together, and we can break the chain of
-LINQS operator into several middle query.
+---
 
-> var names = new List\<string\> { \"Hung\", \"Cao\", \"Van\", \"Tung\"
-> ,\"Chau\",\"An\"};
->
-> /\*\* we use multiple small intermediate queries instead of one single
-> query\*/
->
-> var filtered = names.Where(n =\> n.Contains(\"H\"));
->
-> var ordered = filtered.OrderBy(n =\> n.Length);
->
-> var projected = ordered.Select(n=\> n.ToUpper());
->
-> var limited = projected.Take(2);
->
-> foreach(var name in limited) {
->
-> Console.WriteLine(name);
->
-> }
+## 1. Progressive Query Building
+This approach is common when using **Fluent Syntax**. Since LINQ uses deferred execution, you can break a long chain of operators into several intermediate variables without any performance penalty.
 
-Moreover, the progressive query building method allows us to write
-conditional query.
+```csharp
+var names = new List<string> { "Hung", "Cao", "Van", "Tung", "Chau", "An" };
 
-if (includeFilter) query = query.Where(\...)
+// Building the query step-by-step
+var filtered = names.Where(n => n.Contains("H"));
+var ordered = filtered.OrderBy(n => n.Length);
+var projected = ordered.Select(n => n.ToUpper());
+var limited = projected.Take(2);
 
-**The into keyword**
+foreach (var name in limited) 
+{
+    Console.WriteLine(name);
+}
+```
 
-This is only appliable in query expression. It enables us to extend the
-query after select or group operation which are both the query
-termination operators.
+### Conditional Queries
+Progressive building also allows for conditional logic within your queries:
 
-var resultQuery = from n in names // first query scope
+```csharp
+var query = names.AsQueryable();
 
-where n.Length \> 0 // first query scope
+if (shouldFilterByLength)
+{
+    query = query.Where(n => n.Length > 3);
+}
 
-select n // first query scope
+var result = query.ToList();
+```
 
-into n1 // second query scope
+---
 
-orderby n1.Length // second query scope
+## 2. The `into` Keyword
+The `into` keyword is used in **Query Expressions** to continue a query after a `select` or `group` clause (which normally terminate the query).
 
-select n1.ToLower(); // second query scope
+```csharp
+var resultQuery = from n in names
+                  where n.Length > 0
+                  select n
+                  into n1 // Start a new query scope
+                  orderby n1.Length
+                  select n1.ToLower();
+```
 
-n1 represents the element of the sequence resulted from the first query.
+> [!IMPORTANT]
+> When you use `into`, the variables from the previous scope (like `n` in the example above) are no longer accessible. Only the new range variable (`n1`) is visible from that point forward.
 
-When move to next query scope, any variable from previous scope (for
-example n from the first query) is not accessible.
+---
 
-var query = from n1 in names
+## 3. Query Wrapping
+A progressively built query can be "wrapped" into a single statement by placing one query expression inside parentheses within another.
 
-select n1.ToUpper()
+```csharp
+// Instead of separate variables:
+var tempQuery = from n in names where n.Length > 3 select n;
+var finalQuery = from n in tempQuery orderby n select n;
 
-into n2 // Only n2 is visible from here on.
-
-> where n1.Contains(\"x\") // Illegal: n1 is not in scope.
-
-select n2;
-
-**Wrapping query**
-
-A query built progressively can be formulated into a single statement by
-wrapping one query around another. For example
-
-**var tempQuery = tempQueryExpr**
-
-**var finalQuery = from \... in tempQuery \...**
-
-can be reformulated as:
-
-**var finalQuery = from \... in (tempQueryExpr)**
+// You can wrap them:
+var finalQuery = from n in (from n in names where n.Length > 3 select n)
+                 orderby n
+                 select n;
+```

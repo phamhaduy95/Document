@@ -11,10 +11,14 @@
             "id": "679425194af67288",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "Programing Language/C#/ASP.NET/authentication and authorization/adding and configure authentication middleware.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "adding and configure authentication middleware"
             }
           }
         ]
@@ -176,6 +180,25 @@
       "bases:Create new base": false
     }
   },
-  "active": "679425194af67288",
-  "lastOpenFiles": []
+  "active": "c1e887c1e34c8907",
+  "lastOpenFiles": [
+    "Software Architect And Design/Use case.md",
+    "Software Architect And Design/Untitled.md",
+    "Software Architect And Design/Note.md",
+    "Software Architect And Design/Software Requirement Specification/Software requirement.md",
+    "Software Architect And Design/Software Requirement Specification/Untitled.md",
+    "Software Architect And Design/Untitled 1.base",
+    "Software Architect And Design/Untitled.base",
+    "Software Architect And Design/Software Requirement Specification",
+    "Programing Language/C#/ASP.NET/authentication and authorization/adding and configure authentication middleware.md",
+    "Software Testing/Untitled.md",
+    "Programing Language/C#/C# type/default value.md",
+    "Untitled.base",
+    "Programing Language/C#/C# type/boxing and unboxing.md",
+    "Programing Language/Typescript/Typescript.md",
+    "Software Architect And Design/TODOs.md",
+    "Software Architect And Design/software design phylosophy.md",
+    "Programing Language/C#/ASP.NET/authentication and authorization/authentication and authorization with JWT bearer scheme.md",
+    "Programing Language/C#/ASP.NET/authentication and authorization/authentication and authorization overview.md"
+  ]
 }

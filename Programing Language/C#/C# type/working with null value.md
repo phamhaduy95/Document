@@ -1,84 +1,51 @@
-# Table of Contents {#table-of-contents .TOC-Heading}
+# Working with Nullable Values
 
-[1 Nullable value type [2](#nullable-value-type)](#nullable-value-type)
+By default, only reference types (like objects and strings) can accept `null` as a valid value. However, C# provides **Nullable Value Types**, which allow value types (like `int`, `double`, `bool`) to represent a `null` state.
 
-[2 Working with nullable value
-[2](#working-with-nullable-value)](#working-with-nullable-value)
+## Nullable Value Types
+To define a nullable value type, append a question mark (`?`) to the type name.
 
-**\**
+```csharp
+double? pi = 3.14;
+char? letter = 'a';
+int? m2 = 10;
+bool? flag = null;
 
-# Nullable value type
+// An array of nullable integers
+int?[] arr = new int?[10];
+```
 
-By default, only object type or reference type can accept null as a
-valid value. However, C# consists of a set of types each of which can
-have additional null value beside its underlying value type. This
-category of type is call nullable value type. To define a nullable value
-type, just insert question mark (?) at the end of the name of value
-type. For example.
+Internally, a nullable value type is an instance of the `System.Nullable<T>` structure. `Nullable<T>` and `T?` are interchangeable forms.
 
-> double? pi = 3.14;
->
-> char? letter = \'a\';
->
-> string? name = null;
->
-> int m2 = 10;
->
-> bool? flag = null;
->
-> // An array of a nullable value type
->
-> int?\[\] arr = new int?\[10\];
+## Handling Nullable Values
+The `System.Nullable<T>` structure provides properties to safely check for and access values:
 
-Any nullable value type is an instance of the generic
-System.Nullable\<T\> structure. You can refer to a nullable value type
-with an underlying type T in any of the following interchangeable forms:
-Nullable\<T\> or T?.
+- **HasValue**: Returns `true` if the variable contains a value; `false` if it is `null`.
+- **Value**: Gets the underlying value if `HasValue` is `true`. Accessing `Value` when `HasValue` is `false` throws an `InvalidOperationException`.
 
-# Working with nullable value
+### Example: Checking for Values
+```csharp
+int? b = 10;
 
-System.Nullable\<T\> supertype provides us some useful methods to handle
-the possible null for any nullable value type:
+if (b.HasValue)
+{
+    Console.WriteLine($"b is {b.Value}");
+}
+else
+{
+    Console.WriteLine("b does not have a value");
+}
+```
 
-- Nullable\<T\>.HasValue indicates whether an instance of a nullable
-  value type has a value of its underlying type.
+### The Null-Coalescing Operator (??)
+If you want to assign a nullable value to a non-nullable variable, you can provide a fallback value using the `??` operator.
 
-- Nullable\<T\>.Value gets the value of an underlying type if HasValue
-  is true. If HasValue is false, the Value property throws an
-  InvalidOperationException.
+```csharp
+int? a = 28;
+int b = a ?? -1;
+Console.WriteLine($"b is {b}"); // output: b is 28
 
-For instance, you want to
-
-> int? b = 10;
->
-> if (b.HasValue)
->
-> {
->
-> Console.WriteLine(\$\"b is {b.Value}\");
->
-> }
->
-> else
->
-> {
->
-> Console.WriteLine(\"b does not have a value\");
->
-> }
-
-If you want to assign a value of a nullable value type to a non-nullable
-value type variable, you might need to specify the value to be assigned
-in place of null. Use the null-coalescing operator ?? to do that.
-
-> int? a = 28;
->
-> int b = a ?? -1;
->
-> Console.WriteLine(\$\"b is {b}\"); // output: b is 28
->
-> int? c = null;
->
-> int d = c ?? -1;
->
-> Console.WriteLine(\$\"d is {d}\"); // output: d is -1
+int? c = null;
+int d = c ?? -1;
+Console.WriteLine($"d is {d}"); // output: d is -1
+```

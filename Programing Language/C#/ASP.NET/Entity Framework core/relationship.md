@@ -1,236 +1,105 @@
-Types of relationship
+# Entity Relationships in EF Core
 
-One-to-one relationship
+Entity Framework Core allows you to define relationships between your entities using navigation properties and the Fluent API.
 
-Add navigation property for both entity class
+---
 
+## 1. One-to-One Relationship
+In a one-to-one relationship, a single record in one table is associated with exactly one record in another table.
+
+```csharp
 public class Blog
-
 {
-
-public int BlogId { get; set; }
-
-public string Url { get; set; }
-
-public BlogImage BlogImage { get; set; }
-
+    public int BlogId { get; set; }
+    public string Url { get; set; }
+    public BlogImage BlogImage { get; set; } // Navigation property
 }
 
 public class BlogImage
-
 {
-
-public int BlogImageId { get; set; }
-
-public byte\[\] Image { get; set; }
-
-public string Caption { get; set; }
-
-public int BlogId { get; set; }
-
-public Blog Blog { get; set; }
-
+    public int BlogImageId { get; set; }
+    public byte[] Image { get; set; }
+    
+    public int BlogId { get; set; } // Foreign Key
+    public Blog Blog { get; set; }  // Navigation property
 }
+```
 
-Configure relationship in OnModelCreating Method
+### Fluent API Configuration
+```csharp
+modelBuilder.Entity<Blog>()
+    .HasOne(b => b.BlogImage)
+    .WithOne(i => i.Blog)
+    .HasForeignKey<BlogImage>(i => i.BlogId);
+```
 
-internal class MyContext : DbContext
+---
 
+## 2. One-to-Many Relationship
+One record in the principal table can be associated with many records in the dependent table. This is the most common relationship type.
+
+```csharp
+public class Blog
 {
-
-public DbSet\<Blog\> Blogs { get; set; }
-
-public DbSet\<BlogImage\> BlogImages { get; set; }
-
-protected override void OnModelCreating(ModelBuilder modelBuilder)
-
-{
-
-modelBuilder.Entity\<Blog\>()
-
-.HasOne(b =\> b.BlogImage)
-
-.WithOne(i =\> i.Blog)
-
-.HasForeignKey\<BlogImage\>(b =\> b.BlogForeignKey);
-
-}
-
-}
-
-One-to-many-relationship
-
-Many-to-many-relationship
-
-Many-to-many relationships require a collection navigation property on
-both sides. They will be discovered by convention like other types of
-relationships.
-
-public class Post
-
-{
-
-public int PostId { get; set; }
-
-public string Title { get; set; }
-
-public string Content { get; set; }
-
-public ICollection\<Tag\> Tags { get; set; }
-
-}
-
-public class Tag
-
-{
-
-public string TagId { get; set; }
-
-public ICollection\<Post\> Posts { get; set; }
-
-}
-
-It is common to apply configuration to the join entity type. This action
-can be accomplished via UsingEntity.
-
-modelBuilder
-
-.Entity\<Post\>()
-
-.HasMany(p =\> p.Tags)
-
-.WithMany(p =\> p.Posts)
-
-.UsingEntity(j =\> j.ToTable(\"PostTags\"));
-
- it\'s best to create a bespoke CLR type. When configuring the
-relationship with a custom join entity type both foreign keys need to be
-specified explicitly
-
-internal class MyContext : DbContext
-
-{
-
-public MyContext(DbContextOptions\<MyContext\> options)
-
-: base(options)
-
-{
-
-}
-
-public DbSet\<Post\> Posts { get; set; }
-
-public DbSet\<Tag\> Tags { get; set; }
-
-protected override void OnModelCreating(ModelBuilder modelBuilder)
-
-{
-
-modelBuilder.Entity\<Post\>()
-
-.HasMany(p =\> p.Tags)
-
-.WithMany(p =\> p.Posts)
-
-.UsingEntity\<PostTag\>(
-
-j =\> j
-
-.HasOne(pt =\> pt.Tag)
-
-.WithMany(t =\> t.PostTags)
-
-.HasForeignKey(pt =\> pt.TagId),
-
-j =\> j
-
-.HasOne(pt =\> pt.Post)
-
-.WithMany(p =\> p.PostTags)
-
-.HasForeignKey(pt =\> pt.PostId),
-
-j =\>
-
-{
-
-j.Property(pt =\>
-pt.PublicationDate).HasDefaultValueSql(\"CURRENT_TIMESTAMP\");
-
-j.HasKey(t =\> new { t.PostId, t.TagId });
-
-});
-
-}
-
+    public int BlogId { get; set; }
+    public ICollection<Post> Posts { get; set; } // Collection navigation
 }
 
 public class Post
-
 {
+    public int PostId { get; set; }
+    public int BlogId { get; set; } // Foreign Key
+    public Blog Blog { get; set; }  // Reference navigation
+}
+```
 
-public int PostId { get; set; }
+---
 
-public string Title { get; set; }
+## 3. Many-to-Many Relationship
+Many-to-many relationships require collection navigation properties on both sides. EF Core can automatically discover these and manage the hidden "join table" for you.
 
-public string Content { get; set; }
-
-public ICollection\<Tag\> Tags { get; set; }
-
-public List\<PostTag\> PostTags { get; set; }
-
+```csharp
+public class Post
+{
+    public int PostId { get; set; }
+    public ICollection<Tag> Tags { get; set; }
 }
 
 public class Tag
-
 {
-
-public string TagId { get; set; }
-
-public ICollection\<Post\> Posts { get; set; }
-
-public List\<PostTag\> PostTags { get; set; }
-
+    public string TagId { get; set; }
+    public ICollection<Post> Posts { get; set; }
 }
+```
 
-public class PostTag
+### Custom Join Entity
+If you need to store additional data on the relationship (e.g., `DateAdded`), you should define a bespoke join entity type.
 
-{
+```csharp
+modelBuilder.Entity<Post>()
+    .HasMany(p => p.Tags)
+    .WithMany(t => t.Posts)
+    .UsingEntity<PostTag>(
+        l => l.HasOne(pt => pt.Tag).WithMany().HasForeignKey(pt => pt.TagId),
+        r => r.HasOne(pt => pt.Post).WithMany().HasForeignKey(pt => pt.PostId),
+        j => {
+            j.HasKey(pt => new { pt.PostId, pt.TagId }); // Composite Key
+        });
+```
 
-public DateTime PublicationDate { get; set; }
+---
 
-public int PostId { get; set; }
+## 4. Delete Behaviors
+Delete behaviors determine what happens to dependent entities when a principal entity is deleted.
 
-public Post Post { get; set; }
+- **Cascade**: Dependent entities are deleted automatically. (Default for required relationships).
+- **ClientSetNull / SetNull**: The foreign key of the dependent entities is set to `null`. (Requires the foreign key to be nullable).
+- **Restrict**: Deletion of the principal is prohibited if any dependents exist.
 
-public string TagId { get; set; }
-
-public Tag Tag { get; set; }
-
-}
-
-Optional and required relationship
-
-This setting affects the deleting behavior of database when the one row
-of primary row is deleted. If set optional, then foreign key slot within
-the dependent table is set to null. When being set to required, then the
-database will execute the cascade delete which will delete any
-dependency row.
-
-protected override void OnModelCreating(ModelBuilder modelBuilder)
-
-{
-
-modelBuilder.Entity\<Post\>()
-
-.HasOne(p =\> p.Blog)
-
-.WithMany(b =\> b.Post
-
-.IsRequired(); // make the relationship is optional
-
-}
-
-Setting primary entity as forein key to null will delete this row
-completely.
+```csharp
+modelBuilder.Entity<Post>()
+    .HasOne(p => p.Blog)
+    .WithMany(b => b.Posts)
+    .IsRequired() // Required relationship triggers Cascade by default
+    .OnDelete(DeleteBehavior.Cascade);
+```

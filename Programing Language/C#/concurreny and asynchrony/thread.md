@@ -1,188 +1,87 @@
-**Thread Creation**
+# Threads in C#
 
-System. Thread is the main library for thread creation and management.
-To create the thread, initiate the thread object. The thread object
-initialization accepts a function as an input, which will be executed
-within the context of that thread.
+The `System.Threading.Thread` class is the primary low-level tool for creating and managing threads in .NET.
 
-Thread t = new Thread (myMethod);
+## Thread Creation
+To create a thread, instantiate a `Thread` object and pass it a delegate (method or lambda) to execute.
 
-void myMethod( ){
+```csharp
+Thread t = new Thread(MyMethod);
+t.Start();
 
-while(true){
-
-Console.Writeline("do something in secondary thread");
-
-Thread.Sleep(10)
-
+void MyMethod()
+{
+    Console.WriteLine("Executing on secondary thread.");
 }
+```
 
-While(true){
+### Thread Lifecycle
+Once the delegate finishes executing, the thread is deactivated and cannot be restarted.
 
-Console.writeline("do something in main thread");
+## Thread Management
+- **Thread.Sleep(ms)**: Pauses the current thread for a specified period.
+- **Thread.Join()**: Blocks the current (calling) thread until the target thread finishes.
+- **IsBackground**:
+    - **Foreground Threads**: Keep the application alive as long as they are running.
+    - **Background Threads**: Do not keep the application alive; they terminate abruptly when all foreground threads finish.
 
+```csharp
+Thread worker = new Thread(() => Console.ReadLine());
+worker.IsBackground = true; // Set as background thread
+worker.Start();
+```
+
+---
+
+## Memory and Shared State
+Each thread has its own **stack** for local variables, but multiple threads can access **shared state** (variables in the heap or static fields).
+
+### Data Races
+A data race occurs when multiple threads attempt to modify shared state simultaneously, leading to unpredictable results.
+
+```csharp
+bool _done = false;
+
+void Go()
+{
+    if (!_done) { _done = true; Console.WriteLine("Done"); }
 }
+```
 
+### Locking
+Use the `lock` statement to ensure that only one thread can access a block of code at a time.
+
+```csharp
+private static readonly object _locker = new object();
+private static bool _done;
+
+static void Go()
+{
+    lock (_locker)
+    {
+        if (!_done)
+        {
+            Console.WriteLine("Done");
+            _done = true;
+        }
+    }
 }
+```
 
-Thread initialization also accept lambda expression.
+---
 
-Thread t = new Thread ( ()=\>{ myMethod() });
+## The Thread Pool
+The Thread Pool provides a set of recycled threads, avoiding the overhead of creating new threads for every task. It helps prevent **oversubscription** (having more threads than CPU cores).
 
-Then you call start method provided by the Thread class to signal the
-thread to start.
+### Key Characteristics of Pool Threads:
+- They are always **background threads**.
+- They cannot be named.
+- They are best used for **short-running** tasks (ideally < 100ms).
 
-t.start();
+---
 
-After the delegate method in the thread finishes executing, the thread
-will be deactivated and cannot be restarted.
-
-The OS performs multithreading differently on single-core and multi-core
-environment. For single-core, the OS would allocate the small timeframe
-for each thread (typically 20ms in Windows) and switch the context
-between each thread to run it simultaneously. Since this happens really
-fast for human perceptions, it creates an illusion of concurrency.
-However, in multi-core environment, the OS can distribute each thread to
-different core to execute it parallelly.
-
-Use Thread.join() to make main thread to wait for the targeted thread to
-finish executing. Be careful with the thread whose delegate function has
-infinite loop as it makes main thread wait forever.
-
-Thread.Sleep pauses the current thread for a specified period:
-
-Thread.sleep(100) // in millisecond
-
-Thread.sleep(new TimeSpan.FromHours (1));
-
-Thread.Sleep(0) relinquishes the thread's current time slice
-immediately, voluntarily handing over the CPU to other threads. Its is
-mostly used for performance tweaks.
-
-**Blocking thread**
-
-The thread is considered being blocked when it is pause for some
-reasons. Join and sleep are ones of them. To test whether one thread is
-blocked or not, use the statement.
-
-bool blocked = (someThread.ThreadState & ThreadState.WaitSleepJoin) !=
-0;
-
-the Thread can be blocked by shared state locking mechanic.
-
-**Memory management in multithreading**
-
-Each thread is assigned its own memory stack for storing any local
-variable. Moreover, the thread can access and modify the variables in
-the main thread too. These variables are called shared state.
-
-**bool \_done = false;\**
-new Thread (Go).Start();\
-Go();\
-void Go()\
-{\
-if (!**\_done**) { **\_done = true**; Console.WriteLine (\"Done\"); }\
-}
-
-Using shared stated across multiple thread can cause the data race which
-happens when there are more than one thread trying to modify the shared
-variable while it is currently used to perform some sensitive
-computation in other thread. To deal with this issue, you can apply
-thread locking mechanism.
-
-C# provides us a lock statement for this purpose.
-
-class ThreadSafe\
-{\
-static bool \_done;\
-static readonly object \_locker = new object();\
-static void Main()\
-{\
-new Thread (Go).Start();\
-Go();\
-} s\
-static void Go()\
-{\
-**lock (\_locker)\
-{\**
-if (!\_done) { Console.WriteLine (\"Done\"); \_done = true; }\
-**}\**
-\
-}
-
-when the lock is applied to one block of code, it will only allow one
-thread to access this block of code at the time. Other thread must wait
-until the thread, which possesses the lock, finish its execution and
-release the lock.
-
-**Passing argument to method in the thread**
-
-You can pass the argument to the delegate method from the Thread.Start()
-method.
-
-Thread t = new Thread (Print);\
-t.Start **(\"Hello from t!\")**;\
-void Print (object messageObj)\
-{\
-string message = (string) messageObj; // We need to cast here\
-Console.WriteLine (message);\
-}
-
-By default, threads you create explicitly are foreground threads.
-Foreground threads keep the application alive for as long as any one of
-them is running, whereas background threads do not. After all foreground
-threads finish, the application ends, and any background threads still
-running abruptly terminate.
-
-You can query or change a thread's background status using its
-IsBackground property.
-
-static void Main (string\[\] args)\
-{\
-Thread worker = new Thread ( () =\> Console.ReadLine() );\
-if (args.Length \> 0) worker.IsBackground = true;\
-worker.Start();\
-}
-
-**The Thread Pool**
-
-Thread pool provides us with a prebuilt set of threads which can be
-recycled to be used when needed, instead of creating new thread. Thread
-pooling is essential to build effective multithreading programming since
-thread pool can limit the total amount of threads used in program as
-having too many threads can cause oversubscription, the condition where
-there are more threads than the cores of the CPU.
-
-Some important thing to be concerned when working with thread pool.
-
-- All threads in pool are background threads.
-
-- Thread in pools cannot be named, which make thread debugging
-  inconvenient.
-
-- Blocking thread in pool can degrade the total performance.
-
-Thread pool in C# use the hill-climbing algorithm to manage and control
-the workload assigned the its internal threads. This design approach for
-thread pools works quite efficiently in many situations. However, there
-are some tips to ensure the desired performance for thread pool.
-
-- Work items assigned to thread in pool should be short-running (250ms
-  at most and ideally 100ms).
-
-- Work items that spend most of the time blocked do not dominate the
-  pool (lowest priority).
-
-**Disadvantage of thread approach**
-
-Thread provides us a reliable low-level tool to perform concurrent and
-parallel programming. However, Thread also has some noticeable
-shortcoming.
-
-- It is difficult to transfer the return value from one thread to the
-  main thread. The only viable option is having the shared state to hold
-  the result to passed back to the main thread. Yet, dealing with data
-  race and exception for shared state is painful.
-
-- You can't tell a thread to start something else when it's finished;
-  instead, you must Join it (blocking your own thread in the process).
+## Limitations of the Thread Class
+While powerful, the `Thread` class has several drawbacks compared to modern **Tasks**:
+1. **Difficult to Return Values**: Requires manual synchronization and shared state.
+2. **No Chaining**: You cannot easily tell a thread to "do this after that" without blocking via `Join()`.
+3. **Expensive**: Creating new threads consumes significant system resources.

@@ -1,40 +1,69 @@
-Browser security prevents a web page from making requests to a different
-domain than the one that served the web page. This restriction is called
-the *same-origin policy*. The same-origin policy prevents a malicious
-site from reading sensitive data from another site. Sometimes, you might
-want to allow other sites to make cross-origin requests to your app. For
-more information, see the [[Mozilla CORS
-article]{.underline}](https://developer.mozilla.org/docs/Web/HTTP/CORS).
+# Enabling Cross-Origin Resource Sharing (CORS)
 
-[[Cross Origin Resource
-Sharing]{.underline}](https://www.w3.org/TR/cors/) (CORS):
+Browser security prevents a web page from making requests to a different domain than the one that served it. This restriction is known as the **Same-Origin Policy**. **CORS** (Cross-Origin Resource Sharing) is a W3C standard that allows a server to relax this policy and explicitly permit specific cross-origin requests.
 
-- Is a W3C standard that allows a server to relax the same-origin
-  policy.
+---
 
-- Is **not** a security feature, CORS relaxes security. An API is not
-  safer by allowing CORS. For more information, see [[How CORS
-  works]{.underline}](https://docs.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-6.0#how-cors).
+## 1. How CORS Works
+CORS is **not** a security feature—it is a mechanism that allows a server to bypass a security restriction in the browser. It works by having the server send specific HTTP headers (like `Access-Control-Allow-Origin`) that tell the browser which external domains are allowed to access the data.
 
-- Allows a server to explicitly allow some cross-origin requests while
-  rejecting others.
+---
 
-- Is safer and more flexible than earlier techniques, such
-  as [[JSONP]{.underline}](https://docs.microsoft.com/en-us/dotnet/framework/wcf/samples/jsonp).
+## 2. Configuring CORS in ASP.NET Core
+To enable CORS, you must define a policy in the service container and then apply it in the middleware pipeline.
 
-There are three ways to enable CORS:
+### Step 1: Define a Named Policy
+In `Program.cs`, register the CORS services and define your rules.
 
-- In middleware using a [[named
-  policy]{.underline}](https://docs.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-6.0#np) or [[default
-  policy]{.underline}](https://docs.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-6.0#dp).
+```csharp
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin",
+        builder =>
+        {
+            builder.WithOrigins("https://my-frontend-app.com", "http://localhost:3000")
+                   .AllowAnyHeader()
+                   .AllowAnyMethod();
+        });
+});
+```
 
-- Using [[endpoint
-  routing]{.underline}](https://docs.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-6.0#ecors6).
+### Step 2: Apply the Middleware
+Add the `UseCors` middleware to your pipeline. It must be placed after `UseRouting` but before `UseAuthorization`.
 
-- With
-  the [[\[EnableCors\]]{.underline}](https://docs.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-6.0#attr) attribute.
+```csharp
+app.UseRouting();
 
-Using
-the [[\[EnableCors\]]{.underline}](https://docs.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-6.0#attr) attribute
-with a named policy provides the finest control in limiting endpoints
-that support CORS.
+// Apply the CORS policy globally
+app.UseCors("AllowSpecificOrigin");
+
+app.UseAuthorization();
+```
+
+---
+
+## 3. Applying CORS to Specific Endpoints
+Instead of enabling CORS for the whole application, you can apply it to specific Controllers or Actions using the **`[EnableCors]`** attribute.
+
+```csharp
+[ApiController]
+[Route("api/[controller]")]
+[EnableCors("AllowSpecificOrigin")] // Applies only to this controller
+public class ProductsController : ControllerBase
+{
+    [HttpGet]
+    public IActionResult Get() => Ok();
+}
+```
+
+---
+
+## 4. Policy Configuration Options
+- **`WithOrigins`**: Specifies the exact domains allowed to make requests.
+- **`AllowAnyOrigin`**: Allows requests from any website (use with caution).
+- **`WithMethods`**: Restricts which HTTP verbs (GET, POST, etc.) are allowed.
+- **`WithHeaders`**: Specifies which custom headers the client is allowed to send.
+- **`AllowCredentials`**: Allows the browser to send cookies or authentication tokens with the request.
+
+> [!WARNING]
+> Most browsers will block a CORS request if you use **`.AllowAnyOrigin()`** in combination with **`.AllowCredentials()`**. For authenticated requests, you must specify the exact origins.

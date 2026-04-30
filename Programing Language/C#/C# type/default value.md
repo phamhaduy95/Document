@@ -1,68 +1,59 @@
-The majority of inbuilt type in .NET are automatically assigned default
-value when no specific value is given. To obtain default value, you can
-use the stand-alone method default(Type).
+# Default Values in C#
 
-Console.log(default(int)); // 0
+The majority of built-in types in .NET are automatically assigned a default value when no specific value is provided. You can obtain the default value of any type using the `default(T)` operator (or the `default` literal in newer C# versions).
 
-You can obtain the default value of any type with default method.
-
-Console.log(default(int));
-
-Boolean type default value is false.
-
-Console.WriteLine(default(bool)); // False
-
-Most primitive numeric types have 0 as default value.
-
-Console.WriteLine(default(sbyte)); // 0
-
-Console.WriteLine(default(float)); // 0
-
+```csharp
 Console.WriteLine(default(int)); // 0
+```
 
+## Primitive Types
+
+| Type | Default Value |
+| :--- | :--- |
+| `bool` | `false` |
+| `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong` | `0` |
+| `float`, `double`, `decimal` | `0` |
+| `char` | `\0` (null character) |
+
+```csharp
+Console.WriteLine(default(bool));    // False
+Console.WriteLine(default(float));   // 0
 Console.WriteLine(default(decimal)); // 0
+```
 
-String has default value is null which is not string type at all.
+## Reference Types
+All reference types (including `string`) have a default value of `null`.
 
-var str = default(string);
-
-Console.WriteLine(a == \"\"); // False
-
-Console.WriteLine(a == null); // True
-
-Similar to string, reference type also has default value as null.
+```csharp
+string str = default(string);
+Console.WriteLine(str == null); // True
 
 internal class Student
-
 {
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public uint Age { get; set; }
+    public string ClassName { get; set; }
 
-public string Id { get; set; }
-
-public string Name { get; set; }
-
-public uint Age { get; set; }
-
-public string ClassName { get; set; }
-
-public Student()
-
-{
-
-Id = Guid.NewGuid().ToString();
-
+    public Student()
+    {
+        Id = Guid.NewGuid().ToString();
+    }
 }
 
-}
-
-var student = (default(Student));
-
+var student = default(Student);
 Console.WriteLine(student == null); // True
+```
 
-However, there are some exceptions, which are DateTime and Guid type.
+## Special Structs
+Commonly used structs like `DateTime` and `Guid` have specific default values:
 
+- **DateTime**: `1/1/0001 12:00:00 AM`
+- **Guid**: `00000000-0000-0000-0000-000000000000`
+
+```csharp
 Console.WriteLine(default(DateTime)); // 1/1/0001 12:00:00 AM
+Console.WriteLine(default(Guid));     // 00000000-0000-0000-0000-000000000000
+```
 
-Console.WriteLine(default(Guid)); //
-00000000-0000-0000-0000-000000000000.
-
-For struct type, the default value depends on what type of each member
+For custom `struct` types, the default value is an instance with all its fields set to their respective default values.

@@ -1,231 +1,76 @@
-PASSING DATA INTO VIEW
+# Passing Data to Razor Views
 
-There are three ways for injecting data into Razor View:
+In ASP.NET Core, there are three primary mechanisms for passing data from a Controller to a View: **Strongly-Typed Models**, **ViewData**, and **ViewBag**.
 
-- using strongly-typed data
+---
 
-- ViewData
+## 1. Strongly-Typed Models (Recommended)
+This is the standard and most robust approach. It involves passing a specific C# object (often called a **ViewModel**) to the view.
 
-- ViewBag
+### Why use it?
+- **IntelliSense**: Full code completion in your `.cshtml` files.
+- **Type Safety**: Errors are caught at compile-time rather than runtime.
+- **Refactoring Support**: Changing a property name in the model updates the view (or shows an error).
 
-1.  using strongly-typed data
-
-The returned View() inside action method can accept an object which hold
-data for passing into Razor view. The object is often called as the view
-model. The major advantage of this approach is its strong type
-enforcement which ensure type safety and the intelliSence support which
-helps fast development.
-
-To pass data using view model, follow these steps below:
-
-step 1: define the viewModel class. The view model class should be
-public and consists of public gettable data members while not having any
-method.
-
-namespace WebApplication1.ViewModels
-
-public class AddressViewModel
-
+### Example:
+**1. Define the ViewModel**
+```csharp
+public class UserProfileViewModel
 {
-
-public string Name { get; set; }
-
-public string Street { get; set; }
-
-public string City { get; set; }
-
-public string State { get; set; }
-
-public string PostalCode { get; set; }
-
+    public string Name { get; set; }
+    public int Age { get; set; }
 }
+```
 
-step 2: initiate the object from view model and pass it into View( ) as
-a parameter.
-
-public IActionResult Contact()
-
+**2. Pass the Model from the Controller**
+```csharp
+public IActionResult Details()
 {
-
-var viewModel = new Address()
-
-{
-
-Name = \"Microsoft\",
-
-Street = \"One Microsoft Way\",
-
-City = \"Redmond\",
-
-State = \"WA\",
-
-PostalCode = \"98052-6399\"
-
-};
-
-return View(viewModel);
-
+    var model = new UserProfileViewModel { Name = "John", Age = 30 };
+    return View(model);
 }
+```
 
-step 3: To use it on Razor View file (.cshtml), specify a model using
-\@model directive then you can acquire data from the model with \@Model:
+**3. Receive the Model in the View**
+```cshtml
+@model UserProfileViewModel
 
-\@model WebApplication1.ViewModels.AddressViewModel
+<h2>User: @Model.Name</h2>
+<p>Age: @Model.Age</p>
+```
 
-\<h2\>Contact\</h2\>
+---
 
-\<address\>
+## 2. ViewData
+`ViewData` is a dictionary object (`ViewDataDictionary`) accessed via string keys. It is useful for passing small amounts of data that aren't part of the main model (like a page title).
 
-\@Model.Street\<br\>
+- **Controller**: `ViewData["Title"] = "Home Page";`
+- **View**: `<h1>@ViewData["Title"]</h1>`
 
-\@Model.City, \@Model.State \@Model.PostalCode\<br\>
+> [!IMPORTANT]
+> `ViewData` requires **explicit casting** in the view if you are passing complex objects, as it stores everything as an `object`.
 
-\<abbr title=\"Phone\"\>P:\</abbr\> 425.555.0100
+---
 
-\</address\>
+## 3. ViewBag
+`ViewBag` is a dynamic property that acts as a wrapper around `ViewData`. It allows you to use dot notation instead of string keys.
 
-2.  ViewData
+- **Controller**: `ViewBag.Message = "Succesfully saved!";`
+- **View**: `<div class="alert">@ViewBag.Message</div>`
 
-ViewData is a
-[ViewDataDictionary](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.viewfeatures.viewdatadictionary)
-object accessed through string keys. To add data into ViewData object,
-use the syntax:
+### Limitations:
+- **No IntelliSense**: You won't get any help from the IDE when typing property names.
+- **Runtime Errors**: If you mistype a property name, the app will crash at runtime rather than failing to compile.
 
-ViewData\[\"key_string\"\] = value;
+---
 
-The value assign to ViewData can be string, primitive type or an object.
+## 4. Which One Should You Use?
 
-public IActionResult SomeAction()
+| Feature | Strongly-Typed Model | ViewData / ViewBag |
+| :--- | :--- | :--- |
+| **Best For** | Primary data, Forms, Large objects | Small data, Metadata (Titles), Layout info |
+| **Pros** | Type-safe, IntelliSense, Clean code | Quick, No class definition needed |
+| **Cons** | Requires a class definition | Prone to typos, No IntelliSense |
 
-{
-
-ViewData\[\"Greeting\"\] = \"Hello\";
-
-ViewData\[\"Address\"\] = new Address()
-
-{
-
-Name = \"Steve\",
-
-Street = \"123 Main St\",
-
-City = \"Hudson\",
-
-State = \"OH\",
-
-PostalCode = \"44236\"
-
-};
-
-return View();
-
-}
-
-in Razor view, if the value inside ViewData is string and numeric value,
-you can inject the value directly to Razor view. For other complex type
-such as object, you need to explicitly cast the ViewData value to
-correct type.
-
-\@{
-
-// Since Address isn\'t a string, it requires a cast.
-
-var address = ViewData\[\"Address\"\] as Address;
-
-}
-
-// since ViewData\[\"Greeting\"\] is string so its value is
-automatically inserted.
-
-\@ViewData\[\"Greeting\"\] World!
-
-\<address\>
-
-\@address.Name\<br\>
-
-\@address.Street\<br\>
-
-\@address.City, \@address.State \@address.PostalCode
-
-\</address\>
-
-3.  ViewBag
-
-ViewBag is a C# object that provides dynamic access to the objects
-stored in ViewData. ViewBag can be more convenient to work with, since
-it doesn\'t require casting and querying data using string. With
-ViewBag, you can dynamically access the data within ViewBag just like
-working with regular object, however, Visual studio does not provide
-intellisense for dynamic objects including ViewBag like VS does for
-strongly-typed data.
-
-C#
-
-public IActionResult SomeAction()
-
-{
-
-ViewBag.Greeting = \"Hello\";
-
-ViewBag.Address = new Address()
-
-{
-
-Name = \"Steve\",
-
-Street = \"123 Main St\",
-
-City = \"Hudson\",
-
-State = \"OH\",
-
-PostalCode = \"44236\"
-
-};
-
-return View();
-
-}
-
-**.cshtml**
-
-\@ViewBag.Greeting World!
-
-\<address\>
-
-\@ViewBag.Address.Name\<br\>
-
-\@ViewBag.Address.Street\<br\>
-
-\@ViewBag.Address.City, \@ViewBag.Address.State
-\@ViewBag.Address.PostalCode
-
-\</address\>
-
-4.  type casting ViewBag and ViewData.
-
-The ViewBag and ViewData use boxing mechanism to wrap around an
-arbitrary object. You can unbox the data held by ViewBag and ViewData to
-transform it back to it true original type. Doing so allow the
-IntelliSence feature support while working with data.
-
-Note: Please ensure the correct type for type casting the when unboxing
-the data inside ViewData or ViewBag;
-
-@\*import the correct type of View Model for the data \*@
-
-\@using StudentViewModel;
-
-\@{
-
-var student = (StudentViewModel) ViewBag.Student;
-
-}
-
-\<div\>
-
-\<p\> Student name: \@student.Name \</p\>
-
-\<p\> Student age: \@student.Age \</p\>
-
-\</div\>
+> [!TIP]
+> Use **Strongly-Typed Models** for 95% of your work. Reserve `ViewData` for passing data into Layouts (like setting the `<title>` tag) or for very small, one-off messages.

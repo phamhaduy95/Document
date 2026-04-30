@@ -1,160 +1,71 @@
-Provide user-friendly interface to encrypt and decrypt string data.
+# Data Protection in ASP.NET Core
 
-Basically, protecting data consists of the following steps:
+The ASP.NET Core Data Protection stack provides a simple, user-friendly interface for encrypting and decrypting data. It is primarily used for short-term protection of sensitive strings (like authentication cookies).
 
-1.  Create a data protector from a data protection provider.
+---
 
-2.  Call the Protect method with the data you want to protect.
+## 1. How It Works
+Protecting data involves three main steps:
 
-3.  Call the Unprotect method with the data you want to turn back into
-    plain text.
+1.  **Create a Data Protector** using a data protection provider.
+2.  **Protect**: Encrypt the plain text.
+3.  **Unprotect**: Decrypt the protected payload back into plain text.
 
-using System;
-
-using Microsoft.AspNetCore.DataProtection;
-
-using Microsoft.Extensions.DependencyInjection;
-
-public class Program
-
+### Example Usage
+```csharp
+public class MyService
 {
+    private readonly IDataProtector _protector;
 
-public static void Main(string\[\] args)
+    // The provider is injected via Dependency Injection
+    public MyService(IDataProtectionProvider provider)
+    {
+        // "Purpose strings" provide cryptographic isolation
+        _protector = provider.CreateProtector("Contoso.MyClass.v1");
+    }
 
-{
+    public void SecureData(string sensitiveInfo)
+    {
+        // Encrypt the payload
+        string protectedData = _protector.Protect(sensitiveInfo);
+        Console.WriteLine($"Protected: {protectedData}");
 
-// add data protection services
-
-var serviceCollection = new ServiceCollection();
-
-serviceCollection.AddDataProtection();
-
-var services = serviceCollection.BuildServiceProvider();
-
-// create an instance of MyClass using the service provider
-
-var instance = ActivatorUtilities.CreateInstance\<MyClass\>(services);
-
-instance.RunSample();
-
+        // Decrypt the payload
+        string originalData = _protector.Unprotect(protectedData);
+        Console.WriteLine($"Original: {originalData}");
+    }
 }
+```
 
-public class MyClass
+---
 
-{
+## 2. Purpose Strings
+When you create a protector, you must provide one or more **Purpose Strings**. These strings provide isolation between cryptographic consumers. Data protected with a purpose of "green" cannot be unprotected by a protector with a purpose of "purple", even if they use the same underlying root keys.
 
-IDataProtector \_protector;
+---
 
-// the \'provider\' parameter is provided by DI
+## 3. Key Persistence
+By default, keys are stored in the user profile folder. In production or containerized environments, you should configure a persistent storage location so that sessions remain valid across deployments or restarts.
 
-public MyClass(IDataProtectionProvider provider)
-
-{
-
-\_protector = provider.CreateProtector(\"Contoso.MyClass.v1\");
-
-}
-
-public void RunSample()
-
-{
-
-Console.Write(\"Enter input: \");
-
-string input = Console.ReadLine();
-
-// protect the payload
-
-string protectedPayload = \_protector.Protect(input);
-
-Console.WriteLine(\$\"Protect returned: {protectedPayload}\");
-
-// unprotect the payload
-
-string unprotectedPayload = \_protector.Unprotect(protectedPayload);
-
-Console.WriteLine(\$\"Unprotect returned: {unprotectedPayload}\");
-
-}
-
-}
-
-}
-
-/\*
-
-\* SAMPLE OUTPUT
-
-\*
-
-\* Enter input: Hello world!
-
-\* Protect returned: CfDJ8ICcgQwZZhlAlTZT\...OdfH66i1PnGmpCR5e441xQ
-
-\* Unprotect returned: Hello world!
-
-\*/
-
-When you create a protector you must provide one or more [Purpose
-Strings](https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/consumer-apis/purpose-strings?view=aspnetcore-6.0).
-A purpose string provides isolation between consumers.
-
- For example, a protector created with a purpose string of \"green\"
-wouldn\'t be able to unprotect data provided by a protector with a
-purpose of \"purple\".
-
-Components which consume IDataProtectionProvider must pass a
-unique *purposes* parameter to the CreateProtector method. The
-purposes *parameter* is inherent to the security of the data protection
-system, as it provides isolation between cryptographic consumers, even
-if the root cryptographic keys are the same
-
-A better purposes chain for the messaging component would
-be CreateProtector(\[ \"Contoso.Messaging.SecureMessage\", \$\"User:
-{username}\" \]), which provides proper isolation.
-
-**PersistKeysToDbContext**
-
+### Persisting to a Database (EF Core)
+```csharp
 builder.Services.AddDataProtection()
+    .PersistKeysToDbContext<AppDbContext>();
+```
 
-.PersistKeysToDbContext\<SampleDbContext\>();
-
-The preceding code stores the keys in the configured database. The
-database context being used must
-implement IDataProtectionKeyContext. IDataProtectionKeyContext exposes
-the property DataProtectionKeys
-
-public DbSet\<DataProtectionKey\> DataProtectionKeys { get; set; } =
-null!;
-
+### Key Lifetime
+You can configure how long keys remain valid before a new one is generated.
+```csharp
 builder.Services.AddDataProtection()
+    .SetDefaultKeyLifetime(TimeSpan.FromDays(14));
+```
 
-.SetDefaultKeyLifetime(TimeSpan.FromDays(14));
+---
 
-When hosting in
-a [[Docker]{.underline}](https://learn.microsoft.com/en-us/dotnet/standard/microservices-architecture/container-docker-introduction/) container,
-keys should be maintained in either:
+## 4. Hosting in Containers
+When running in Docker, keys must be stored in a location that persists beyond the container's lifetime:
+- **Docker Volumes**: A shared or host-mounted volume.
+- **External Providers**: Azure Blob Storage, Redis, or HashiCorp Vault.
 
-- A folder that\'s a Docker volume that persists beyond the container\'s
-  lifetime, such as a shared volume or a host-mounted volume.
-
-- An external provider, such as [[Azure Blob
-  Storage]{.underline}](https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction) (shown
-  in
-  the [ProtectKeysWithAzureKeyVault](https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/configuration/overview?view=aspnetcore-6.0#protectkeyswithazurekeyvault) section)
-  or [[Redis]{.underline}](https://redis.io/).
-
-Understand the key lifetime
-
-The key is stored within the keyring which is the collection of all keys
-generated
-
- That said, there\'s nothing prohibiting a developer from using the
-ASP.NET Core data protection APIs for long-term protection of
-confidential data. Keys are never removed from the key ring,
-so IDataProtector.Unprotect can always recover existing payloads as long
-as the keys are available and valid
-
-However, an issue arises when the developer tries to unprotect data that
-has been protected with a revoked key, as IDataProtector.Unprotect will
-throw an exception in this case.
+> [!WARNING]
+> If keys are lost (e.g., when a container is deleted without a persistent volume), any data protected with those keys—including active user sessions and authentication cookies—will become unreadable and invalid.

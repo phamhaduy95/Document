@@ -4,39 +4,24 @@
     "type": "split",
     "children": [
       {
-        "id": "3747a1485ebaf3b6",
+        "id": "18657da7bc39b9a8",
         "type": "tabs",
         "children": [
           {
-            "id": "c54fd10e39cdb944",
+            "id": "0eaaea067c3beb45",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Canvas graphic/antd X6.md",
+                "file": "Chart/Untitled 2.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "antd X6"
-            }
-          },
-          {
-            "id": "864cf45351f57944",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Front-end Testing/testing method.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "testing method"
+              "title": "Untitled 2"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -198,10 +183,17 @@
       "bases:Create new base": false
     }
   },
-  "active": "864cf45351f57944",
+  "active": "0eaaea067c3beb45",
   "lastOpenFiles": [
-    "writing.md",
+    "Chart/EChart.md",
+    "Untitled.base",
+    "Chart/Untitled 2.md",
+    "Chart/Echart.md",
+    "Chart/D3.js.md",
+    "Chart/Chart.md",
+    "Canvas graphic/antd X6.md",
     "Front-end Testing/testing method.md",
+    "writing.md",
     "Front-end Testing/Testing pyramid.md",
     "Markdown.md",
     "Development tools/Vite/Resolve named import in Vite.md",
@@ -212,12 +204,7 @@
     "Development tools/storybook.md",
     "Development tools/PNPM.md",
     "Development tools/Turborepo/turborepo.md",
-    "Chart/Chart.md",
-    "Chart/D3.js.md",
-    "Chart/Untitled 2.md",
-    "Chart/Untitled.md",
     "Canvas graphic/Canvas graphic.md",
-    "Canvas graphic/antd X6.md",
     "Web General Knowledge/Accessibility/Accessibility.md",
     "Chart/svg.md",
     "Web General Knowledge/SVG/Untitled.md",
@@ -228,14 +215,12 @@
     "Vue/Frameworks",
     "React/Techniques/Import SVG as Component.md",
     "React/Techniques/Component design.md",
-    "Vue/Component defination.md",
     "React/Techniques",
     "React/Frameworks",
     "React/Fundamental",
     "Web General Knowledge/Crossed-browser",
     "Web General Knowledge/Web Storages",
     "Web General Knowledge/Cascade Style Sheet (CSS)",
-    "Web General Knowledge/Web worker",
     "Untitled.canvas"
   ]
 }

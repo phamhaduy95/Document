@@ -1,182 +1,70 @@
-ROUTING
+# Routing in ASP.NET Core
 
-1.  Introduction to routing in ASP.NET core
+Routing is the process of mapping an incoming HTTP request to a specific executable handler, known as an **Endpoint**.
 
-Routing in ASP.NET Core is the process of mapping an incoming HTTP
-request to a specific handler. In legacy MVC framework, the handler is
-Action from the Controller while it is the Page handler in Razor
-framework.
+## 1. How Routing Works
+In ASP.NET Core, routing is managed by two main middleware components working in tandem:
 
-The Routing task of ASP.NET core is managed by the combination of two
-middleware components:
+- **Routing Middleware (`UseRouting`)**: Analyzes the incoming URL and headers to determine which registered endpoint is the best match.
+- **Endpoint Middleware (`UseEndpoints` or `Map...`)**: Executes the actual handler (such as a Controller action or Razor Page) that was selected by the Routing Middleware.
 
-- *Endpoint Middleware*: You use this middleware to register the HTTP
-  request handlers in your application. The handlers mentioned here can
-  be the action method within the Controller class or Page handlers from
-  Razor Page.
+> [!NOTE]
+> If a request URL does not match any registered route template, the request continues through the pipeline. If it reaches the end without being handled, the server typically returns a **404 Not Found** response.
 
-- *Routing Middleware*: This [middleware]{.mark} chooses which of the
-  endpoints registered by the EndpointMiddleware should execute for a
-  given request at runtime.
+---
 
-> ![](media/image1.png){width="6.5in" height="3.8819444444444446in"}
+## 2. Route Templates
+A route template defines a pattern for URLs in your application. It allows a single handler to respond to a range of similar URLs.
 
-*figure 1: the diagram illustrates how the routing mechanism is executed
-ASP.NET core.*
+### Template Syntax
+- **Literal Value**: `/shop/products` (Matches the exact string).
+- **Variable Parameter**: `/{category}` (Matches any value and stores it in the route data).
+- **Optional Parameter**: `/{id?}` (The segment is not required for a match).
+- **Default Value**: `/{controller=Home}` (Uses "Home" if the segment is omitted).
+- **Constraints**: `/{id:int}` (Only matches if the segment can be parsed as an integer).
 
-**Note**: If the request URL does not match a route template, no
-endpoint is selected or executed. The whole middleware pipeline is still
-executed, but typically a 404 response is returned when the request
-reaches the dummy 404 middleware.
+### Examples
+| Template | Example URL | Extracted Route Values |
+| :--- | :--- | :--- |
+| `product/{id:int}` | `/product/123` | `id = 123` |
+| `blog/{category}/{name}` | `/blog/tech/ai` | `category = "tech"`, `name = "ai"` |
+| `search/{term=all}` | `/search` | `term = "all"` |
 
-2.  Defining routing
+> [!WARNING]
+> Do not use route constraints (like `:int` or `:min(18)`) for high-level data validation. Constraints are intended to help the router distinguish between two similar routes; actual data validation should occur during **Model Binding**.
 
-**2.1 route template**
+---
 
-One common problem arising when mapping URL to different endpoint is
-that you often need to create many URL strings whose value varies
-little. For instance, a typical Ecommerce size usually assigns a unique
-URL for getting page for each product within its inventory. And these
-URLs differ only by the segment Id at the end of URL sting:
+## 3. Conventional vs. Attribute Routing
 
-shop/product/0dda13 -\> page for apple.
+### Conventional Routing
+Commonly used in MVC applications with Views. Routes are defined globally in a central location, usually in `Program.cs`.
 
-shop/product/0dda45 -\> page for orange.
+```csharp
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+```
 
-To address this issue, ASP.NET support Routing templates which define
-the pattern for URLs in your application. One route template can be used
-to represent multiple URL strings which follow the pattern from the
-route template.
+### Attribute Routing
+The preferred approach for **RESTful APIs**. Routes are defined directly on the Controller class or its Action methods using attributes.
 
-Let explore route template syntax to produce the correct URL for your
-app
+```csharp
+[ApiController]
+[Route("api/[controller]")]
+public class ProductsController : ControllerBase
+{
+    [HttpGet("{id}")] // Matches GET api/products/5
+    public IActionResult GetById(int id) 
+    { 
+        return Ok(); 
+    }
+}
+```
 
-The route template comprises of several segments which are separated by
-the dash (/). For each segment we can define it as:
+---
 
-- *literal value*: /literal_value.
-
-- *variable parameter*: /{variable}.
-
-- *optional parameter*: /{optional?}.
-
-- *variable parameter with default value*: /{variable=default_value}
-
-- *segment with value constraints*: / {id: int}
-
-![](media/image2.png){width="2.8126727909011375in"
-height="1.3231660104986878in"}
-
-For example, the route template above considers these URL as valid.
-
-  -----------------------------------------------------------------------
-  URL                           Route value
-  ----------------------------- -----------------------------------------
-  product/fruit/orange          category = fruit, name = orange
-
-  product/car                   category = car, name = all
-
-  product/meat/pork/0125        category = meat, name = pork, id=0125
-  -----------------------------------------------------------------------
-
-you can add constraints to the URL string through route template as
-well. To define the constraints in your route template, use colon (:)
-within a variable segment. For example: /{age: min(18)}.
-
-**Warning**: Don't use route constraints for data validation. This duty
-should be done in model binding phase instead.
-
-The complete list of route constraints type can be found in in
-Microsoft's "Routing in ASP.NET Core" documentation.
-
-Some rules when designing route template:
-
-- The optional segment must be put at the end of the URL string.
-
-- Some words can't be used as literal segment: area, action, controller,
-  handler, and page. These still can be used as variable or optional
-  one. For example, controller/page is illegal while
-  {controller}/{page=index} is accepted.
-
-- Routing is not case sensitive. For example: "Shop/inventory" is the
-  same as "shop/Inventory".
-
-- Those words controller, page, action when are used as variable, they
-  will be automatically mapped to the name of the Controller, Page,
-  Action declared in ASP.NET core application respectively.
-
-**2.2 convention-base routing vs attribute routing**
-
-ASP.NET supports two different approaches for define URL-endpoint
-mapping:
-
-- ***Convention-base routing*:** can be defined globally in program.cs.
-  It is typically used with controllers and views in MVC framework.
-
-> in ASP.NET core MapControllerRoute is standard method for creating a
-> single route. Each Single route defined by this method requires name,
-> and the route template and sometimes a default value. Beside the
-> routing definition task, the MapControllerRoute automatically
-> registers the endpoint for you as well so no need to call UseEndpoint.
->
-> app.MapControllerRoute (
->
-> name: \"default\",
->
-> pattern: \"{controller=Home}/{action=Index}/{id?}\");
->
-> Multiple conventional routes are defined by assigning each route
-> template to different MapControllerRoute. For example
->
-> app.MapControllerRoute(name: \"blog\",
->
-> pattern: \"blog/{\*article}\",
->
-> defaults: new {controller = \"Blog\", action = \"Article\"});
->
-> app.MapControllerRoute(name: \"default\",
->
-> pattern: \"{controller=Home}/{action=Index}/{id?}\");
-
-- **Attribute routing:** is often used for RESTful APIs application
-  where the HTTP request contains HTTP verbs such as POST, PUT, GET,
-  DELETE, ... It uses a set of attributes to map actions directly to
-  route templates.
-
-> To make the app use attribute routing, call MapController in your
-> program.cs.
->
-> var builder = WebApplication.CreateBuilder(args);
->
-> builder.Services.AddControllers();
->
-> var app = builder.Build();
->
-> app.UseHttpsRedirection();
->
-> app.UseAuthorization();
->
-> app.MapControllers();
->
-> app.Run();
->
-> To map a Route template to one Action within API controller, add
-> Route("route_template") attribute to that Action. For example:
->
-> public class HomeController : Controller{
->
-> \[Route(\"\")\]
->
-> \[Route(\"Home\")\]
->
-> \[Route(\"Home/Index\")\]
->
-> \[Route(\"Home/Index/{id?}\")\]
->
-> public IActionResult Index(int? id) {
->
-> return ControllerContext.MyDisplayRouteInfo(id);
->
-> }
->
-> }
+## 4. Design Guidelines
+- **Case Insensitivity**: Routing is not case-sensitive by default (`/Home` matches `/home`).
+- **Reserved Words**: Certain words like `action`, `controller`, and `page` have special meanings when used as variables in a template.
+- **Order of Precedence**: In conventional routing, the order in which you call `MapControllerRoute` matters (first match wins). In attribute routing, the system uses a scoring system based on complexity to find the best match.

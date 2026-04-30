@@ -2,6 +2,6 @@
   "theme": "obsidian",
   "cssTheme": "Atom",
   "interfaceFontFamily": "DejaVu Sans",
-  "baseFontSize": 17,
+  "baseFontSize": 16,
   "nativeMenus": true
 }

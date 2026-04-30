@@ -1,110 +1,79 @@
-MODEL VALIDATION
+# Model Validation in ASP.NET Core
 
-1.  **The important of data validation**
+Data sent by clients can be unpredictable or malicious. Model validation ensures that the data your application receives conforms to specific rules and prerequisites before you process it.
 
-Data sent by client can sometimes be arbitrary and unpredictable. It is
-not uncommon to set some prerequisites and strict rule for controlling
-type and format of each piece of data. ASP.NET support data validation
-features for binding model acquired from HTTP request.
+---
 
-Validation occurs in the Razor Pages framework after model binding, but
-before\
-the page handler executes.
+## 1. When Validation Occurs
+Validation occurs **after** model binding but **before** the action method or page handler executes. However, the handler will always execute even if validation fails, so you must check the result manually within the handler.
 
-![](media/image1.png){width="6.5in" height="4.725694444444445in"}
+---
 
-Model Validation is often used to check for non-malicious errors:
+## 2. Using Validation Attributes
+Validation attributes allow you to specify rules directly on your model properties using declarative metadata.
 
-- Data should be formatted correctly. (e-mail format)
+| Attribute | Description |
+| :--- | :--- |
+| **`[Required]`** | Ensures the property is not null or empty. |
+| **`[StringLength]`** | Sets the maximum (and optionally minimum) length of a string. |
+| **`[Range]`** | Ensures a numeric value falls within a specific range. |
+| **`[EmailAddress]`** | Validates that the value has a correct email format. |
+| **`[Phone]`** | Validates that the value has a correct phone number format. |
+| **`[RegularExpression]`** | Validates the input against a custom regex pattern. |
 
-- Numbers might need to be in a particular range.
+### Example ViewModel
+```csharp
+public class UserViewModel 
+{
+    [Required]
+    public Guid Id { get; set; }
 
-- Some values may be required but others are optional
+    [StringLength(100, ErrorMessage = "Name length cannot exceed 100 characters.")]
+    public string Name { get; set; }
 
-- Values must conform to your business requirements
+    [Range(0, 120)]
+    public int Age { get; set; }
 
-2.  Validation attributes
-
-Validation attributes allow you to specify the rules that your binding
-model should conform to. They provide metadata about your model by
-describing the sort of data the binding model should contain, as opposed
-to the data itself.
-
-You can apply Validation attributes directly to your binding models to
-indicate the type of data that's acceptable.
-
-public class UserViewModel {
-
-\[Required\] // value must be provided.
-
-public Guid Id { get; set; }
-
-> //The StringLength Attribute sets the maximum length for the property
-
-\[StringLength(200)\]
-
-public string Name { get; set;}
-
-\[Range(0,200)\]
-
-public int Age { get; set;}
-
-// check this property has valid phone number format
-
-\[Phone\]
-
-public string TeleNumber { get; set;}
-
-// verify whether a property has a valid email address format
-
-\[EmailAddress\]
-
-public string Email { get; set; }
-
+    [EmailAddress]
+    public string Email { get; set; }
 }
+```
 
-Note: The validation attributes also have its application for validate
-property of entity model class.
+---
 
-You can find the entire set of validation attributes in Microsoft
-ASP.NET document
-"<https://docs.microsoft.com/en-us/aspnet/core/mvc/advanced/custom-model-binding?view=aspnetcore-6.0>"
+## 3. Checking Validation Results
+The result of the validation attempt is stored in the **`ModelState`** object. In your action method, you should check the `ModelState.IsValid` property.
 
-Validation attributes also let you specify the error message to be
-displayed for invalid input.
+```csharp
+[HttpPost("student")]
+public IActionResult AddStudent(UserViewModel user)
+{
+    if (!ModelState.IsValid) 
+    {
+        // If any property fails validation, return a 400 Bad Request
+        return BadRequest(ModelState);
+    }
 
-\[StringLength(100, ErrorMessage = \"Name length can\'t be more than
-100.\")\]
-
-public string Name { get; set;}
-
-3.  Checking validation
-
-Validation of the binding model occurs before the page handler executes,
-but note that the handler always executes, whether the validation failed
-or succeeded. It's the responsibility of the page handler to check the
-result of the validation. Validation happens automatically, but handling
-validation failures is the responsibility of the page handler. ASP.NET
-core stores the output of the validation attempt in ModelState object.
-
-\[HttpPost(\"student\")\]
-
-public IActionResult AddStudent(UserViewModel user){
-
-> // If any property inside UserViewModel don't pass validation test,
-> the ModelState.IsValid will be set false.
-
-if (!ModelState.IsValid) {
-
-return BadRequest();
-
+    // If we reach here, the data is valid
+    return Ok(user);
 }
+```
 
-Console.WriteLine(\$\" user {user.Id} name {user.Name}, age:
-{user.Age}\");
+> [!NOTE]
+> If your controller is decorated with the **`[ApiController]`** attribute, the framework automatically performs this check and returns a `400 Bad Request` if validation fails, allowing you to omit the manual `if (!ModelState.IsValid)` block.
 
-return Ok(user);
+---
 
+## 4. Custom Validation Attributes
+For validation logic that isn't covered by built-in attributes, you can create a custom attribute by inheriting from `ValidationAttribute` and overriding the `IsValid` method.
+
+```csharp
+public class MyCustomValidationAttribute : ValidationAttribute
+{
+    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    {
+        // Add your custom validation logic here
+        return ValidationResult.Success;
+    }
 }
-
-4.  Creating custom validation attribute
+```

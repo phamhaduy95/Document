@@ -1,69 +1,77 @@
-Handling JSON request
+# Handling JSON with Newtonsoft.Json
 
-It is not common for us to handle the HTTP request in JSON format file.
-One of the high-performance and popular libraries to handling JSON in
-.NET environment is NewtonSoft.Json packet. The packet offers some
-useful benefits and feature
+While .NET now includes a built-in `System.Text.Json` library, **Newtonsoft.Json** (also known as Json.NET) remains one of the most popular and feature-rich libraries for JSON manipulation in the .NET ecosystem.
 
-- Flexible JSON serializer for converting between .NET objects and JSON.
+---
 
-- LINQ to JSON for manually reading and writing JSON.
+## 1. Key Features
+- **Flexibility**: Handles complex object graphs, including circular references.
+- **LINQ to JSON**: Allows you to query and modify JSON objects manually without needing to map them to a C# class.
+- **Customization**: Offers deep control over date formats, property naming (CamelCase vs. PascalCase), and null value handling.
+- **Performance**: Highly optimized for both speed and memory usage.
 
-- High performance: faster than .NET\'s built-in JSON serializers.
+---
 
-- Write indented, easy-to-read JSON.
+## 2. Basic Serialization and Deserialization
+First, install the **`Newtonsoft.Json`** NuGet package.
 
-- Convert JSON to and from XML.
+### Serialization (Object to JSON string)
+Use `JsonConvert.SerializeObject()` to convert a .NET object into a JSON-formatted string.
 
-you can install this packet through NuGet Packet management and import
-it at the beginning of the file.
+```csharp
+using Newtonsoft.Json;
 
-using NewtonSoft.Json;
+var product = new Product
+{
+    Name = "Apple",
+    ExpiryDate = new DateTime(2025, 12, 31),
+    Price = 3.99M,
+    Sizes = new string[] { "Small", "Medium", "Large" }
+};
 
-Serializing and deserializing the JSON
+string json = JsonConvert.SerializeObject(product, Formatting.Indented);
+```
 
-For simple conversion from .NET object to JSON string and vice versa,
-you can use SerializeObject() and DeSerializeObject\<T\>() from the
-JsonConvert class. For example
+### Deserialization (JSON string to Object)
+Use `JsonConvert.DeserializeObject<T>()` to convert a JSON string back into a strongly-typed .NET object.
 
-using NewtonSoft.Json;
+```csharp
+string jsonInput = @"{ 'Name': 'Orange', 'Price': 1.99 }";
 
-Product product = new Product();
+Product product = JsonConvert.DeserializeObject<Product>(jsonInput);
+```
 
-product.Name = \"Apple\";
+---
 
-product.ExpiryDate = new DateTime(2008, 12, 28);
+## 3. Controlling Property Mapping
+You can use attributes to control how specific properties are serialized or deserialized.
 
-product.Price = 3.99M;
+| Attribute | Purpose |
+| :--- | :--- |
+| **`[JsonProperty("name")]`** | Specifies the key name in the JSON (e.g., mapping `UserName` to `user_id`). |
+| **`[JsonIgnore]`** | Excludes a property from the JSON output (useful for sensitive data). |
+| **`[JsonRequired]`** | Ensures a property must exist in the JSON during deserialization. |
 
-product.Sizes = new string\[\] { \"Small\", \"Medium\", \"Large\" };
+```csharp
+public class User
+{
+    [JsonProperty("user_id")]
+    public int Id { get; set; }
 
-string output = JsonConvert.SerializeObject(product);
+    [JsonIgnore]
+    public string InternalToken { get; set; }
+}
+```
 
-//{
+---
 
-// \"Name\": \"Apple\",
+## 4. Integration with ASP.NET Core
+To use Newtonsoft.Json as the default serializer in an ASP.NET Core project (replacing the default `System.Text.Json`), install the `Microsoft.AspNetCore.Mvc.NewtonsoftJson` package and update `Program.cs`:
 
-// \"ExpiryDate\": \"2008-12-28T00:00:00\",
-
-// \"Price\": 3.99,
-
-// \"Sizes\": \[
-
-// \"Small\",
-
-// \"Medium\",
-
-// \"Large\"
-
-// \]
-
-//}
-
-Product deserializedProduct =
-JsonConvert.DeserializeObject\<Product\>(output);
-
-For more control over the serializing and deserializing process,
-
-For more guide of using NewtonSoft.Json library, you can read the
-official document at https://www.newtonsoft.com/json/help/html
+```csharp
+builder.Services.AddControllers()
+    .AddNewtonsoftJson(options =>
+    {
+        options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
+    });
+```

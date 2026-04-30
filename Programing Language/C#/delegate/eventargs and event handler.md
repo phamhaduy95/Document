@@ -1,99 +1,67 @@
-C# utilizes broadcasting feature of delegate to manage events handlers.
-Since delegate can trigger whole its register methods when it is invoked
-so it is treated as the broadcaster for all callback method.
+# Events and EventHandlers in C#
 
-C# has its own pattern to define the event and event handlers to create
-the consistency for developing code to handle an event. The
-implementation of event handler is illustrated through the example
-below.
+C# uses the broadcasting feature of delegates to manage events. An event allows a class or object to notify other classes or objects when something of interest occurs.
 
-class Price
+## The Standard Event Pattern
+To maintain consistency, C# follows a specific pattern for defining events and their handlers.
 
+### 1. Define EventArgs
+If your event needs to pass data, create a class that inherits from `EventArgs`.
+
+```csharp
+public class PriceChangedEventArgs : EventArgs
 {
+    public int OldPrice { get; }
+    public int NewPrice { get; }
 
-int value;
+    public PriceChangedEventArgs(int oldPrice, int newPrice)
+    {
+        OldPrice = oldPrice;
+        NewPrice = newPrice;
+    }
+}
+```
 
-int upperLimit;
+### 2. Define the Event
+Use the `event` keyword with the `EventHandler<T>` delegate.
 
-public Price (int initialValue, int upperLimit)
-
+```csharp
+public class Price
 {
+    private int _currentPrice;
+    public event EventHandler<PriceChangedEventArgs> PriceChanged;
 
-this.value = initialValue;
+    public void UpdatePrice(int newPrice)
+    {
+        int oldPrice = _currentPrice;
+        _currentPrice = newPrice;
 
-this.upperLimit = upperLimit;
+        // 3. Raise the event
+        OnPriceChanged(new PriceChangedEventArgs(oldPrice, newPrice));
+    }
 
+    protected virtual void OnPriceChanged(PriceChangedEventArgs e)
+    {
+        // Use the null-conditional operator to raise the event safely
+        PriceChanged?.Invoke(this, e);
+    }
 }
+```
 
-public void alterPriceValue (int variance)
+## Subscribing to Events
+Other classes can "subscribe" to the event using the `+=` operator.
 
-{
+```csharp
+var price = new Price();
+price.PriceChanged += (sender, e) => {
+    Console.WriteLine($"Price changed from {e.OldPrice} to {e.NewPrice}");
+};
 
-this.currrentValue += variance;
+price.UpdatePrice(100);
+```
 
-}
-
-}
-
-Suppose we want to create an event when the price reaches its upper
-limit. The first is to define the event as a subclass of built-in
-EventArgs superclass.
-
-public class ValueReachUpperLimitEventArgs : EventArgs
-
-{
-
-public int upperLimit;
-
-public int currentValue;
-
-public ValueReachUpperLimitEventArgs(int upperLimit, int currentValue)
-
-{
-
-this.upperLimit = upperLimit;
-
-this.currentValue = currentValue;
-
-}
-
-}
-
-The event class may have none or several class field as the additional
-information along with event signal.
-
-The second step is to add a delegate object as event handler. The
-delegate object for handling event must follow the method template
-below.
-
-public delegate void EventHandler\<TEventArgs\> (object source,
-TEventArgs e)
-
-You can use event keyword as a shorthand for the using delegate directly
-
-public static event EventHandler\<ValueReachUpperLimitEventArgs\>
-ValueReachUpperLimit;
-
-then we create method as event trigger to fire an event.
-
-protected virtual void onValueReachLimit (ValueReachUpperLimitEventArgs
-e)
-
-{
-
-if (ValueReachUpperLimit != null) ValueReachUpperLimit(this, e);
-
-}
-
-we
-
-public void alterPriceValue(int variance)
-
-{
-
-this.currrentValue += variance;
-
-if (this.currrentValue \> this.upperLimit) onValueReachLimit(new
-ValueReachUpperLimitEventArgs(this.upperLimit,this.currrentValue));
-
-}
+### Summary of the Pattern:
+1.  **Broadcaster**: The class that sends the event.
+2.  **Subscriber**: The class that receives the event.
+3.  **EventArgs**: The object containing the event data.
+4.  **EventHandler**: The delegate that defines the signature for the event handler method.

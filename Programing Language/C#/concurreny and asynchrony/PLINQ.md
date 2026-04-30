@@ -1,65 +1,54 @@
-Introduction
+# Parallel LINQ (PLINQ)
 
-PLINQ is the LINQ but operated in parallel fashion. It automatically
-divides the input sequence into several chunks of elements, processes
-them concurrently and then collate them into one output sequence.
+PLINQ is a parallel implementation of LINQ. it automatically partitions the input sequence into several chunks, processes them concurrently on multiple threads, and then collates the results into a single output sequence.
 
-To transform regular LINQ to PLINQ, add ".AsParallel()" to the input
-sequence.
+## Enabling PLINQ
+To transition from standard LINQ to PLINQ, call `.AsParallel()` on the input sequence.
 
-For query expression.
-
+### Query Expression
+```csharp
 var query = from n in numbers.AsParallel()
+            where n > 20
+            select n;
+```
 
-where n \> 20;
+### Fluent Syntax
+```csharp
+var query = numbers.AsParallel()
+                   .Where(n => n > 20)
+                   .Select(n => n);
+```
 
-select n;
+---
 
-for fluent syntax.
+## Ordering in PLINQ
+By default, PLINQ does not guarantee that the order of the output sequence will match the input sequence. You can enforce ordering by using the `.AsOrdered()` method.
 
-var query = numbers.AsParallel().Where(n =\> n \> 20).select(n =\> n);
+```csharp
+var orderedQuery = sequence.AsParallel()
+                           .AsOrdered()
+                           .Where(n => n % 2 == 0);
+```
 
-By default, the PLINQ doesn't preserve the initial order of the input
-sequence into the output sequence . Yet, you can enforce the PLINQ to do
-so by put the AsOrdered() following AsParallel(). For example.
+> [!WARNING]
+> Enforcing order can significantly reduce performance due to the overhead of tracking and sorting elements across multiple threads.
 
-var orderedQuery = sequence.AsParallel().AsOrdered().Where(n=\>n%2 ==
-0).select( n = \> n+1);
+---
 
-Enforcing the order for PLINQ can throttle the overall performance of
-unordered parallel query as it requires some overhead and checking to
-ensure each element being put in right order.
+## Limitations
+- **Local Only**: PLINQ is only applicable to local collections (LINQ to Objects). It cannot be used with database providers like Entity Framework Core.
+- **Overhead**: For small collections or simple operations, the overhead of partitioning and threading can make PLINQ slower than sequential LINQ.
+- **Operation Performance**:
+    - **Fast**: `Select`, `SelectMany`, and built-in aggregations (`Sum`, `Min`, `Max`).
+    - **Potentially Slower**: `Join`, `GroupBy`, `Distinct` (due to the need for cross-thread coordination).
 
-Limitation of PLINQ
+---
 
-The PLING is only appliable to local collection and unusable in entity
-framework.
+## Optimizing with ForAll
+The `.ForAll()` method allows you to process results as soon as they are ready on their respective threads, bypassing the final collation step.
 
-Not all LINQ operation used in PLING is optimized and may lower the
-performance.
-
-- Select, SelectMany are implemented efficiently for parallel operation.
-
-- Join, GroupBy, GroupJoin, Distinct when be used in parallel fashion
-  can sometimes be slower than regular sequence ones.
-
-- All built-in Aggregate operations such as Max, Min, Average, Sum
-  perform well but not for custom Aggregate ones as its performance
-  depends on its own implementation by users.
-
-Optimizing PLINQ
-
-There are some optimization techniques you can utilize to boost the
-performance for PLINQ.
-
-One of PLINQ's advantages is that it conveniently collates the results
-from parallelized work into a single output sequence. However, we
-sometimes don't want this mechanism to happen and instead process each
-chunk of data independently.
-
-To prevent this default mechanism, you use ForAll() method which hooks
-directly into PLINQ's internals, bypassing the steps of collating and
-enumerating the results.
-
-\"abcdef\".AsParallel().Select (c =\> char.ToUpper(c)).ForAll
-(Console.Write);
+```csharp
+"abcdef".AsParallel()
+        .Select(c => char.ToUpper(c))
+        .ForAll(Console.Write);
+```

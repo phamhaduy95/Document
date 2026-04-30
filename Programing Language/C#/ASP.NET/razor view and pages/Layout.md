@@ -1,98 +1,81 @@
-A layout in Razor is a template that includes common code. It can't be
-rendered directly, but it can be rendered in conjunction with normal
-Razor views.
+# Layouts and Partial Views in Razor
 
-Using layouts for shared markup
+Layouts and Partial Views are essential for maintaining a DRY (Don't Repeat Yourself) codebase. They allow you to define common UI structures once and reuse them across your entire application.
 
-Layout files are, for the most part, normal Razor templates that contain
-markup common to more than one page. An ASP.NET Core app can have
-multiple layouts, and layouts can reference other layouts.
+---
 
-A common convention is to prefix your layout files with an underscore
-(\_) to distinguish them from standard Razor templates in your Pages
-folder.
+## 1. Layouts
+A **Layout** acts as a master template for your application. It contains the standard HTML wrapper, meta tags, and common elements like navigation bars and footers.
 
-A layout file looks similar to a normal Razor template, with one
-exception: every layout must call the \@RenderBody() function. This
-tells the templating engine where to insert the content from the child
-views.
+### The `_Layout.cshtml` File
+The most important part of a layout is the **`@RenderBody()`** method. This is a placeholder where the content of individual views will be injected.
 
-\<!DOCTYPE html\>\
-\<html\>\
-\<head\>\
-\<meta charset=\"utf-8\" /\>\
-\<title\>@ViewData\[\"Title\"\]\</title\>\
-\<link rel=\"stylesheet\" href=\"\~/css/site.css\" /\>\
-\</head\>\
-\<body\>\
-\@RenderBody()\
-\</body\>\
-\</html\>
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"] - My ASP.NET App</title>
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+    <header>
+        <nav><!-- Navigation Links --></nav>
+    </header>
 
-Overriding parent layouts using sections
+    <div class="container">
+        @RenderBody()
+    </div>
 
-Sections provide a way of organizing where view elements should be
-placed within a layout. They're defined in the view using an \@section
-definition.
+    <footer>
+        <p>&copy; 2024 - My Application</p>
+    </footer>
+</body>
+</html>
+```
 
-\@{\
-Layout = \"\_TwoColumn\";\
-}\
-\@section Sidebar {\
-\<p\>This is the sidebar content\</p\>\
-}\
-\<p\>This is the main content \</p\>
+---
 
-\@{\
-Layout = \"\_Layout\";\
-}\
-\<div class=\"main-content\"\>\
-\@RenderBody()\
-\</div\>\
-\<div class=\"side-bar\"\>\
-\@RenderSection(\"Sidebar\", required: true)\
-\</div\>\
-\@RenderSection(\"Scripts\", required: false)
+## 2. Sections
+**Sections** provide a way to organize where specific view elements should be placed within a layout. They are commonly used for page-specific scripts or sidebars.
 
-They're perfect for avoiding duplication of content that you'd need to
-write for every view.
+- **In Layout**: `@RenderSection("Scripts", required: false)`
+- **In View**:
+  ```cshtml
+  @section Scripts {
+      <script src="~/js/custom-logic.js"></script>
+  }
+  ```
 
-They provide a\
-means of breaking up a larger view into smaller, reusable chunks
+---
 
-Partial views are rendered using the \<partial /\>
+## 3. Partial Views
+**Partial Views** are specialized Razor templates used to render small, reusable chunks of HTML. Unlike full views, they do not run `_ViewStart.cshtml` and are typically intended to be rendered inside other views.
 
-Partial views are a bit like Razor Pages without the PageModel and
-handlers. Partial views are purely about rendering small sections of
-HTML, rather than handling requests, model binding, and validation, and
-calling the application model.
+### Rendering a Partial View
+The recommended way to render a partial view is using the **`<partial>`** Tag Helper.
 
-Partial views can bind to data in the Model property, like a normal
-Razor Page uses a PageModel.
-
-partial view
-
-\<h2\>@Model.Title\</h2\>\
-\<ul\>\
-\@foreach (var task in Model.Tasks)\
-{\
-\<li\>@task\</li\>\
-}\
-\</ul\>
-
-render partial view
-
-\@page
-
-\@model RecentToDoListModel
-
-\@foreach(var todo in Model.RecentItems)
-
+```html
+<!-- Rendering a list of items using a partial view -->
+@foreach (var item in Model.Items)
 {
-
-\<partial name=\"\_ToDo\" model=\"todo\" /\>
-
+    <partial name="_ItemSummary" model="item" />
 }
+```
 
-NOTE Like layouts, partial views are typically named with a leading
-underscore.
+### Example Partial (`_ItemSummary.cshtml`)
+```cshtml
+@model MyItem
+<div class="item-card">
+    <h4>@Model.Title</h4>
+    <p>@Model.Description</p>
+</div>
+```
+
+---
+
+## 4. Partial Views vs. View Components
+While Partial Views are great for simple HTML reuse, **View Components** are better for complex logic (e.g., a dynamic sidebar that needs to fetch data from a database). View Components have their own C# class and logic, whereas Partial Views rely entirely on the data passed to them by the parent view.
+
+> [!TIP]
+> Always prefix Layouts and Partial Views with an underscore (e.g., `_Layout.cshtml`, `_Navigation.cshtml`) to keep your project organized and clear.

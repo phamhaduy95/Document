@@ -1,22 +1,29 @@
-Arrays are most useful for creating and working with a fixed number of
-strongly typed objects. For information about arrays.
+# Arrays in C#
 
-Default value behaviour of array
+Arrays are used to store a fixed number of strongly typed objects. In C#, an array is actually an object, and the `System.Array` class is the abstract base type of all array types.
 
-- For value types, the array elements are initialized with the default
-  value, the 0-bit pattern; the elements will have the value 0.
+## Characteristics
+- Arrays implement `IList` and `IEnumerable`.
+- You can use the `foreach` statement to iterate through an array.
+- Arrays have a fixed size once initialized.
 
-- All the reference types (including the non-nullable), have the values
-  null.
+## Default Value Behavior
+When an array is created, its elements are initialized to their default values:
 
-- For nullable value types, HasValue is set to false and the elements
-  would be set to null.
+- **Value Types**: Elements are initialized with the 0-bit pattern (e.g., `0` for `int`, `false` for `bool`).
+- **Reference Types**: Elements are initialized to `null`.
+- **Nullable Value Types**: `HasValue` is set to `false`, and elements are considered `null`.
 
-In C# Array is actually an Object.
-[Array](https://learn.microsoft.com/en-us/dotnet/api/system.array) is
-the abstract base type of all array types.
-implement [IList](https://learn.microsoft.com/en-us/dotnet/api/system.collections.ilist),
-and [IEnumerable](https://learn.microsoft.com/en-us/dotnet/api/system.collections.ienumerable).
-You can use
-the [foreach](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/iteration-statements#the-foreach-statement) statement
-to iterate through an array
+## Example
+```csharp
+// Declaration and initialization
+int[] numbers = new int[5]; // All elements are 0
+
+string[] names = new string[3]; // All elements are null
+
+// Iteration
+foreach (var num in numbers)
+{
+    Console.WriteLine(num);
+}
+```

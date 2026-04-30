@@ -1,75 +1,43 @@
-Authentication and authorization overview
+# Authentication and Authorization Overview
 
-1.  Introduction
+Security in ASP.NET Core is built on two primary processes: **Authentication** and **Authorization**. These processes work together to secure your application's resources.
 
-Authentication is the process of determining a user\'s identity while
-Authorization is the process of determining whether a user has access to
-a resource and both serve important roles in security aspect for your
-website. In ASP.NET, these two tasks are handled by the Authentication
-middleware and the Authorization middleware.
+- **Authentication**: The process of determining a user's identity ("Who are you?").
+- **Authorization**: The process of determining whether a user has access to a specific resource ("What are you allowed to do?").
 
-To make the app executed correctly, these two middleware components are
-put in between the Routing middleware and endpoint middleware in the
-middleware pipeline and Authentication middleware is located before the
-Authorization middleware.
+---
 
-**HTTP response**
+## 1. Middleware Pipeline Order
+For security to function correctly, the middleware must be registered in the following sequence in `Program.cs`:
 
-**HTTP request**
+1.  **`app.UseRouting()`**: Matches the request to an endpoint.
+2.  **`app.UseAuthentication()`**: Identifies the user based on credentials (e.g., a cookie or token).
+3.  **`app.UseAuthorization()`**: Checks if the identified user has permission to access the matched endpoint.
+4.  **`app.Map...()`**: Executes the endpoint.
 
-Routing middleware
+---
 
-Authentication middleware
+## 2. The Authentication Phase
+Handled by the **Authentication Middleware**, this phase involves verifying credentials and establishing the user's identity.
 
-Authorization middleware
+1.  **Credentials**: The client provides an identifier (e.g., email) and a secret (e.g., password).
+2.  **Verification**: The app verifies these against a secure store (like ASP.NET Core Identity).
+3.  **Claims**: If valid, the app generates a set of **Claims** (statements about the user, like their Name or Role).
+4.  **Persistence**: These claims are stored in an **Authentication Cookie** or a **JWT Token** and sent back to the client for future requests.
 
-Endpoint middleware
+---
 
-*figure 1.1: The typical middleware pipeline for the project integrating
-the authentication and authorization processes.*
+## 3. The Authorization Phase
+Handled by the **Authorization Middleware**, this phase checks if the authenticated user meets the requirements for the requested resource.
 
-Although, authentication and authorization process in ASP.NET core app
-can be quite complicated, the typical process can be divided into two
-main phases. The first phase is to **authenticate** users which is
-handled by **authentication middleware**. It includes these steps:
+### Types of Authorization Responses:
+- **Success**: The user is authenticated and has the required permissions. The request proceeds to the endpoint.
+- **Challenge (401 Unauthorized)**: The user is not authenticated. The app "challenges" them to provide credentials (e.g., by redirecting to a login page).
+- **Forbidden (403 Forbidden)**: The user is authenticated but does **not** have the necessary rights (e.g., a "Customer" trying to access an "Admin" dashboard).
 
-1.  The client sends an identifier and a secret to the app, which
-    identify the current user. For example, you could send an email
-    address (identifier) and a password (secret).
+---
 
-2.  The app authenticates the user by verifying the identifier and
-    secret correspond to user are correct. For example, the app often
-    checks whether username and password are both valid.
-
-3.  If the identifier and secret are valid, the app will transform these
-    data into **claims,** each of which represents one aspect of user
-    identity, then these claims will be stored inside cookie or
-    serialized into token.
-
-![](media/image1.png){width="6.5in" height="4.217361111111111in"}
-
-*figure 1.2: the typical authentication flows in ASP.NET app using
-identity framework core with authentication cookie.*
-
-The second phase is about authorizing the user request which is carried
-out by the **authorization middleware**. There are three possible
-responses form authorization middleware.
-
-- If the request is authenticated then the request is allowed to pass
-  and access the target endpoint.
-
-- If the request is not authenticated, the authorization middleware will
-  short-circuit the pipeline with an HTTP 401 status code (for JWT
-  bearer scheme) or redirect to login page (for traditional cookie
-  approach), which challenges the user to provide credentials. This is
-  known as a **challenge** response.
-
-- If the request is authenticated but the user is not allowed access,
-  middleware will short-circuit the pipeline with an HTTP 403 status
-  code or redirect to error page. This is known as a **forbidden**
-  response.
-
-![](media/image2.png){width="6.5in" height="4.196527777777778in"}
-
-*figure 1.3: three types of responses generated by authorization
-middleware*
+## 4. Common Security Schemes
+- **Cookie Authentication**: Primarily used for traditional web apps with browsers.
+- **JWT Bearer Authentication**: The standard for modern APIs and Single Page Applications (SPAs).
+- **ASP.NET Core Identity**: A full-featured membership system that handles users, passwords, roles, and two-factor authentication.

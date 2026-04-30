@@ -1,67 +1,87 @@
-Adding Authentication to your ASP.NET core app
+# Configuring Authentication Middleware
 
-There are several concepts you need to understand to effectively
-configure the authentication middleware:
+Authentication in ASP.NET Core is a modular system that identifies the user making a request. To configure it effectively, you must understand the relationship between **Schemes**, **Handlers**, and the **Middleware Pipeline**.
 
-- *the authentication scheme*: is a name that corresponds to a specific
-  authentication handler alongside with its option for configuration.
+d
 
-- *An authentication handler:* is the main implementation for
-  authenticating users. The authentication handler returns an
-  AuthenticateResult indicating whether the authentication was
-  successful or not.
+## 1. Core Concepts
 
-To register the authentication scheme to the middleware, call
-AddAuthentication(string scheme) which makes the input scheme as the
-default implementation and then call any scheme-specific extension
-method such as AddJwtBearer or Addcookie to provide more detail and
-option for configuration.
+### Authentication Scheme
+A **Scheme** is a unique name that corresponds to a specific authentication method. 
+- *Examples*: `"Cookies"`, `"Bearer"`, `"Google"`.
 
-For example: we register two authentication schemes, one using JWT
-bearer and one choosing cookie as main approach.
+### Authentication Handler
+A **Handler** is the engine that performs the actual authentication logic. It examines the incoming request (looking for a cookie or a JWT token) and returns an `AuthenticateResult` indicating whether the user's identity was successfully verified.
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+---
 
-.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =\>
-builder.Configuration.Bind(\"JwtSettings\", options))
+## 2. Registering Authentication Services
+You register and configure your authentication methods in `Program.cs`. You can chain multiple methods together to support different login types.
 
-.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme,
+```csharp
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
-options =\> builder.Configuration.Bind(\"CookieSettings\", options));
+builder.Services.AddAuthentication(options => 
+{
+    // Set the default behavior for the whole app
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddCookie(options => 
+{
+    options.LoginPath = "/Account/Login";
+})
+.AddJwtBearer(options => 
+{
+    // JWT specific configuration here
+});
+```
 
-After providing some setting, we can add the middleware by calling
-app.UseAuthentication()
+---
 
-Configure options for authentication scheme
+## 3. Forwarding Responsibilities
+An authentication scheme can "forward" specific security tasks to a different scheme. This is useful for hybrid scenarios (e.g., using local cookies for session storage but external providers for login challenges).
 
-Instead of providing the string value for default authentication
-scheme's name, we can use lambda action as input for AddAuthentication
-method to give further configuration.
+| Option | Description |
+| :--- | :--- |
+| **`ForwardAuthenticate`** | Forwards the task of identifying the user. |
+| **`ForwardChallenge`** | Forwards the task of prompting the user to log in (e.g., a 401 redirect). |
+| **`ForwardForbid`** | Forwards the task of handling access denied (e.g., a 403 error). |
 
-any authentication register method uses the AuthenticationSchemeOptions
-to provide the configuration for the scheme.
+### Example: Forwarding Challenges to Google
+```csharp
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options => 
+    {
+        // If the user isn't logged in, don't show the local login page; send them to Google.
+        options.ForwardChallenge = "Google";
+    })
+    .AddGoogle("Google", options => { 
+        options.ClientId = "...";
+        options.ClientSecret = "...";
+    });
+```
 
-you can forward the one responsibility to other scheme using method from
-AuthenticationSchemeOptions.
+---
 
-- ForwardAuthenticate: If set, this specifies the target scheme that
-  this scheme should forward AuthenticateAsync calls to.
+## 4. Enabling the Middleware
+Registering services is not enough; you must also tell the ASP.NET Core pipeline to use them.
 
-- ForwardChallenge: If set, this specifies the target scheme that this
-  scheme should forward ChallengeAsync calls to.
+```csharp
+app.UseRouting();
 
-- ForwardForbid: If set, this specifies the target scheme that this
-  scheme should forward ForbidAsync calls to.
+// This middleware identifies the user
+app.UseAuthentication(); 
 
-- ForwardSignIn: If set, this specifies the target scheme that this
-  scheme should forward SignInAsync calls to.
+// This middleware checks if the identified user has permissions
+app.UseAuthorization(); 
 
-For example: we want to build policy scheme which might use Google
-authentication for challenges, and cookie authentication for everything
-else.
+app.MapControllers();
+```
 
-services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+> [!IMPORTANT]
+> The placement of **`app.UseAuthentication()`** is critical. It must appear **after** `app.UseRouting()` so the system knows which endpoint is being accessed, but **before** `app.UseAuthorization()` so the user is identified before permissions are checked.
 
-.AddCookie(options =\> options.ForwardChallenge = \"Google\")
 
-.AddGoogle(options =\> { });
+*ubiquitous language*: a shared vocabulary between software developers and domain expert. Each domain often consists of several jargon and terminologies whose meaning might be different from outside its original context. Therefore developers must actively learn those terms to prevent any confusion when communicating to other stakeholder.

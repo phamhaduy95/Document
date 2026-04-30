@@ -1,129 +1,88 @@
-1.  Introduction
+# EF Core Configuration with Data Annotations
 
-This document will help you learn how to use Data annotations for entity
-class configuration. Using data annotation has some advantages over
-using fluent API:
+Data Annotations are attributes applied directly to your entity classes and properties to define how they should be mapped to the database. This approach is highly readable because the configuration lives alongside the data it describes.
 
-- you write the configuration on the entity class directly not through
-  OnModelCreating method in DbContext class.
+---
 
-- Writing configuration using data annotation is by far the most simple
+## 1. Data Annotations vs. Fluent API
 
-However, it has some tradeoffs too:
+| Aspect | Data Annotations | Fluent API |
+| :--- | :--- | :--- |
+| **Simplicity** | Very high; easy to implement. | Lower; requires more code. |
+| **Placement** | Directly on the entity class. | Centralized in `OnModelCreating`. |
+| **Power** | Basic (Keys, Length, Tables). | Advanced (Indexes, Shadows, Complex Relationships). |
+| **Decoupling** | Low (Models depend on EF namespaces). | High (Keeps domain models clean). |
 
-- The fluent API offers more option and settings for fine-tunes
-  configuration
+> [!TIP]
+> For professional, large-scale projects, the **Fluent API** is generally preferred because it keeps your entity models "clean" and allows for more complex database configurations that aren't possible with attributes.
 
-- Using fluent API help separate the configuration task from entity
-  class, which allows us to flexibly change or swap configuration on
-  demand.
+---
 
-In my opinion, I recommend using fluent API over data annotation as
-fluent API is more suitable in medium-scale or large-scale project thank
-to its responsibility decoupling.
+## 2. Common Data Annotation Attributes
 
-2.  Data annotation attribute
+### 2.1 Primary Keys (`[Key]`)
+By default, EF Core looks for a property named `Id` or `[EntityName]Id`. Use the `[Key]` attribute if your primary key has a custom name.
 
-Data annotation consist of several attributes which can be added on top
-of the entity class, data field to provide the configurations.
-
-In this section, we will teach you how to apply data annotation in some
-common and essential scenarios.
-
-**2.1 Setting primary keys**
-
-Adding Key attribute on top of one data field to promote them as the
-primary key of the table.
-
-1.  public class Order
-
-2.  {
-
-3.  \[Key\]
-
-4.  public int OrderNumber { get; set; }
-
-5.  public DateTime DateCreated { get; set; }
-
-6.  public Customer Customer { get; set; }
-
-7.  
-
-8.  )
-
-**2.2 Setting columns name and type**
-
-You can preset the column name and type through column attribute.
-
-1.  public class Book
-
-2.  {
-
-3.  public int BookId { get; set; }
-
-4.  \[Column(\"Description\", TypeName = \"nvarchar(100)\")\]
-
-5.  public string Title { get; set; }
-
-6.  public Author Author { get; set; }
-
-7.  }
-
-**2.3 specifying foreign key**
-
-public class Student
-
+```csharp
+public class Order
 {
-
-public int StudentID { get; set; }
-
-public string StudentName { get; set; }
-
-**\[ForeignKey(\"FK_Class\")\]**
-
-**public int ClassID { get; set;}**
-
-**public Class Class { get; set;}**
-
+    [Key]
+    public int OrderNumber { get; set; }
 }
+```
 
-**2.4 set one column not nullable**
+### 2.2 Table and Column Customization
+You can explicitly define the database table name and specific column properties.
 
-The Required attribute can be applied to one or more properties in an
-entity class. EF will create a NOT NULL column in a database table for a
-property on which the Required attribute is applied.
-
-using System.ComponentModel.DataAnnotations;
-
+```csharp
+[Table("tbl_Students")]
 public class Student
-
 {
+    public int Id { get; set; }
 
-public int StudentID { get; set; }
-
-\[Required\]
-
-public string StudentName { get; set; }
-
+    [Column("student_name", TypeName = "varchar(100)")]
+    public string Name { get; set; }
 }
+```
 
-**2.5 limit string length**
+### 2.3 Validation and Nullability
+- **`[Required]`**: Tells EF Core that the column cannot be null (`NOT NULL`).
+- **`[StringLength]`**: Sets the maximum character limit for string columns.
 
-The StringLength attribute can be applied to the string properties of an
-entity class. It specifies the maximum characters allowed for a string
-property which in turn sets the size of a corresponding column (nvarchar
-in SQL Server) in the database.
-
-using System.ComponentModel.DataAnnotations;
-
-public class Student
-
+```csharp
+public class User
 {
-
-public int StudentID { get; set; }
-
-\[StringLength(50)\]
-
-public string StudentName { get; set; }
-
+    [Required]
+    [StringLength(50, MinimumLength = 3)]
+    public string UserName { get; set; }
 }
+```
+
+### 2.4 Foreign Keys (`[ForeignKey]`)
+While EF Core is excellent at inferring relationships, you can use `[ForeignKey]` to explicitly link a property to a navigation property.
+
+```csharp
+public class Post
+{
+    public int PostId { get; set; }
+
+    [ForeignKey("Author")]
+    public int AuthorId { get; set; }
+
+    public User Author { get; set; }
+}
+```
+
+### 2.5 Excluding Properties (`[NotMapped]`)
+If you have a property that should only exist in your application logic and **not** be created in the database, use `[NotMapped]`.
+
+```csharp
+public class Employee
+{
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+
+    [NotMapped]
+    public string FullName => $"{FirstName} {LastName}";
+}
+```

@@ -8,5 +8,6 @@ Type of documents:
 - low-level design
 
 
+The standard structure of `SRS` document.
 
 

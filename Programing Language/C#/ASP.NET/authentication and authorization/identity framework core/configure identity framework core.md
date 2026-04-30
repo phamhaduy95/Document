@@ -1,107 +1,81 @@
-Configure Identity Framework Core
+# Configuring ASP.NET Core Identity
 
-when you add Identity framework core in your project, two configuration
-steps must be done for Identity Framework core to run properly.
+To use ASP.NET Core Identity, you must register the required services and configure the security options in your `Program.cs` file. This involves connecting Identity to your database and defining your security policies.
 
-/\*\* add IdentityDbContext and define some EF configuration options for
-project \*/
+---
 
-builder.Services.AddDbContext\<ToDoAppDbContext\>(options =\>
+## 1. Database Configuration
+Identity depends on Entity Framework Core to store user data. First, register your `DbContext` and specify the database provider.
 
-options.UseSqlServer(builder.Configuration.GetConnectionString(\"DefaultConnection\")));
+```csharp
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+```
 
-/\*\* add Identity Framework core and its settings\*/
+---
 
-/\*\* add Identity Framework core and its settings\*/
+## 2. Registering Identity Services
+Use the `AddIdentity<TUser, TRole>` or `AddIdentityCore<TUser>` method to register the identity system. The configuration lambda allows you to set your application's security policies.
 
-builder.Services.AddIdentityCore\<User\>(options =\> {
-
-options.Stores.MaxLengthForKeys = 250;
-
-options.SignIn.RequireConfirmedAccount = true;
-
-options.Password.RequiredLength = 20;
-
-options.User.RequireUniqueEmail =false;
-
-options.Lockout.AllowedForNewUsers = true;
-
-}).AddEntityFrameworkStores\<ToDoAppDbContext\>();
-
-Adding default configuration
-
-The AddIdentityCore method is used for defining setting for Identity
-framework core. The input lambda function exposes IdentityOption object,
-from which we can provides some basic setting for these Identity
-properties:
-
-- User: This property is used to configure the username and email
-  options for user accounts using the UserOptions class.
-
-- SignIn: This property is used to specify the confirmation requirements
-  for accounts using the SignInOptions class.
-
-- Password: This property is used to define the password policy using
-  the PasswordOptions class.
-
-- LockOut: This property uses the LockoutOptions class to define the
-  policy for locking out accounts after a number of failed attempts to
-  sign in.
-
-Each of these properties also contains more details option to setups.
-Some important ones are:
-
-- User.AllowedUserNameCharacters specifies the characters allowed in
-  usernames. The default value is the set of upper and lowercase A--Z
-  characters, the The default value is false.
-
-- Password.RequiredLength specifies a minimum number of characters for
-  passwords. The default value is 6.
-
-- Password.RequiredUniqueChars specifies the minimum number of unique
-  characters that password must contain. The default value is 1.
-
-- Password.RequireNonAlphanumeric This property specifies whether
-  passwords must contain nonalphanumeric characters, such as punctuation
-  characters. The default value is true.
-
-- Password.RequireLowercase specifies whether passwords must contain
-  lowercase characters. The default value is true.
-
-- Password.RequireUppercase specifies whether passwords must contain
-  uppercase characters. The default value is true.
-
-- Password.RequireDigit specifies whether passwords must contain number
-  characters. The default value is true.
-
-- SignIn.RequireConfirmedEmail, when is set to true, only accounts with
-  confirmed email addresses can sign in. The default value is false.
-
-- SignIn.RequireConfirmedPhoneNumber when is set to true, only accounts
-  with confirmed phone numbers can sign in. The default value is false.
-
-- LockOut.MaxFailedAccessAttempts specifies the number of failed
-  attempts allowed before an account is locked out. The default value is
-  5.
-
-- LockOut.DefaultLockoutTimeSpan specifies the duration for lockouts.
-  The default value is 5 minutes.
-
-- LockOut.AllowedForNewUsers determines whether the lockout feature is
-  enabled for new accounts. The default value is true.
-
-you can also configurate any property of Identity framework core using
-option pattern. For example:
-
-/\*\* you can add configuration for any property of Identity framework
-core directly using Option pattern \*/
-
-builder.Services.Configure\<PasswordOptions\>(options =\>
-
+```csharp
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => 
 {
+    // Password settings
+    options.Password.RequireDigit = true;
+    options.Password.RequiredLength = 8;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = true;
 
-options.RequiredLength = 20;
+    // Lockout settings
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
 
-options.RequireDigit = true;
+    // User settings
+    options.User.RequireUniqueEmail = true;
+    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
 
+    // Sign-in settings
+    options.SignIn.RequireConfirmedEmail = true;
 })
+.AddEntityFrameworkStores<AppDbContext>() // Link to EF Core
+.AddDefaultTokenProviders();               // Required for token generation (email/reset)
+```
+
+---
+
+## 3. Configuration Categories
+The **`IdentityOptions`** object provides several sub-objects for specific categories:
+
+### Password Policy (`options.Password`)
+Defines the complexity requirements for user passwords.
+- **`RequiredLength`**: Minimum characters (default: 6).
+- **`RequireDigit`**: Must contain at least one number (default: true).
+- **`RequireNonAlphanumeric`**: Must contain at least one symbol (default: true).
+
+### User Policy (`options.User`)
+Defines rules for user account metadata.
+- **`RequireUniqueEmail`**: Ensures that no two users share the same email address.
+- **`AllowedUserNameCharacters`**: Restricts the characters allowed in a username.
+
+### Lockout Policy (`options.Lockout`)
+Configures protection against brute-force attacks.
+- **`MaxFailedAccessAttempts`**: How many failed attempts are allowed before lockout (default: 5).
+- **`DefaultLockoutTimeSpan`**: How long the account is locked (default: 5 minutes).
+
+### Sign-In Policy (`options.SignIn`)
+Defines the prerequisites for a successful sign-in.
+- **`RequireConfirmedEmail`**: If true, users cannot log in until they verify their email.
+
+---
+
+## 4. Alternative Configuration (Options Pattern)
+You can also configure specific parts of the Identity system separately using the standard .NET Options pattern.
+
+```csharp
+builder.Services.Configure<PasswordOptions>(options =>
+{
+    options.RequiredLength = 20; // Enforce very long passwords
+    options.RequireDigit = true;
+});
+```

@@ -1,131 +1,71 @@
-Introduction
+# The Parallel Class in C#
 
-PFX provides a basic form of structured parallelism via three static
-methods in the Parallel class:
+The `Parallel` class in the Task Parallel Library (TPL) provides a basic form of structured parallelism through three primary static methods:
 
-- Parallel.Invoke: Executes an array of delegates in parallel.
+- **Parallel.Invoke**: Executes multiple delegates in parallel.
+- **Parallel.For**: The parallel equivalent of a standard `for` loop.
+- **Parallel.ForEach**: The parallel equivalent of a standard `foreach` loop.
 
-- Parallel.For: Performs the parallel equivalent of a C# for loop.
+> [!IMPORTANT]
+> All three methods are **blocking** (they wait until all work is complete). They are optimized for **compute-bound** tasks. Do not use them for long-running I/O-bound operations (like web requests), as they can saturate the thread pool.
 
-- Parallel.ForEach: Performs the parallel equivalent of a C# foreach
-  loop.
+---
 
-All three methods block until all work is complete. These three preform
-well with compute-bound not IO-bound so you should not assign any
-long-running task to them such as downloading data from internet.
+## Parallel.Invoke
+`Parallel.Invoke` allows you to execute an array of `Action` delegates simultaneously. It is highly efficient when dealing with a large number of actions.
 
-Parallel.Invoke
+```csharp
+Parallel.Invoke(
+    () => Console.WriteLine("First Task"),
+    () => Console.WriteLine("Second Task")
+);
+```
 
-Parallel.Invoke allow to execute every delegate in Action array
-parallelly. Compared with Task combinators WaitAll() , the
-Parallel.Invoke has much better performances when dealing with the
-Action array whose size is large (1 million for example).
+Since `Action` delegates do not return values, you should use thread-safe collections like `ConcurrentBag<T>` to collect results from parallel actions.
 
-Parallel.Invoke(() =\> { Console.WriteLine(\"first Task\"); },
+```csharp
+var outputBag = new ConcurrentBag<int>();
+var inputs = new int[] { 1, 2, 3, 4, 5 };
 
-() =\> { Console.WriteLine(\"second Task\");});
+Parallel.Invoke(
+    () => outputBag.Add(inputs.Sum()),
+    () => outputBag.Add(inputs.Max())
+);
+```
 
-The Action delegate only allows function with no input and output
-argument. To get data from outside or collect data generated inside each
-Action delegate, the thread-safe shared variable is used.
+---
 
-ConcurrentBag\<IEnumerable\<int\>\> outputBag = new
-ConcurrentBag\<IEnumerable\<int\>\>();
+## Parallel.For and Parallel.ForEach
+These methods perform iterations in parallel. Note that **order is not preserved** during execution.
 
-ConcurrentBag\<int\> inputBag = new ConcurrentBag\<int\> { 1, 2 ,5,6,8};
-
-Action Transformation = () =\>{
-
-var sequence = inputBag.Select(n =\> n + 2);
-
-outputBag.Add(sequence);
-
-};
-
-Action TakeFirstThree = () =\> {
-
-var sequence = inputBag.Take(2);
-
-outputBag.Add(sequence);
-
-};
-
-Action FilterOut = () =\> {
-
-var sequence = inputBag.Where(n =\> n \> 2);
-
-outputBag.Add(sequence);
-
-};
-
-Parallel.Invoke(TakeFirstThree, FilterOut, Transformation);
-
-Parallel.For and Parallel.ForEach
-
-Parallel.For and Parallel.ForEach perform the equivalent of a C# for and
-foreach loop but with each iteration executing in parallel instead of
-sequentially. However, unlike its sequential counterpart, both
-Parallel.For and Parallel.ForEach don't preserve the order of the
-original iterated object.
-
-Parallel.For example
-
-for (var i = 0; i \< 100; i++) {
-
-Console.Write(\$\"{i}\");
-
-Thread.Sleep(100);
-
-}
-
-/\*\* The parallel version for the regular sequential \"for\" iteration
-above\*/
-
-Parallel.For(0, 100, (i) =\> {
-
-Console.Write(\$\"{i}\");
-
-Thread.Sleep(100);
-
+### Parallel.For Example
+```csharp
+Parallel.For(0, 100, i => {
+    Console.WriteLine($"Processing index {i}");
+    Thread.Sleep(10); // Simulate work
 });
+```
 
-Parallel.ForEach example
+### Parallel.ForEach Example
+```csharp
+var numbers = new List<int> { 1, 3, 4, 5, 6 };
 
-List\<int\> numbers = new List\<int\> {1, 3, 4, 5, 5, 6};
-
-Parallel.ForEach(numbers, (value, state, index) =\> {
-
-Console.Write(\$\"element {index} is {value}\");
-
+Parallel.ForEach(numbers, (value, state, index) => {
+    Console.WriteLine($"Element {index} is {value}");
 });
+```
 
-The lambda expression used in Parallel.For and Parallel.ForEach may
-accept three input arguments.
+---
 
-value: the value of iterated element.
+## Controlling Execution with ParallelLoopState
+You can break or stop a parallel loop using the `ParallelLoopState` object provided to the lambda expression.
 
-state: the ParallelLoopState object used to break or stop the iteration
-manually
+- **Break()**: Ensures all iterations that were started before this one (in sequence) are completed.
+- **Stop()**: Stops the loop as soon as possible, without regard for other iterations.
 
-index: the index of the iterated element (only exists in
-Parallel.ForEach).
-
-public class ParallelLoopState {\
-public void Break();\
-public void Stop();\
-public bool IsExceptional { get; }\
-public bool IsStopped { get; }\
-public long? LowestBreakIteration {get; }\
-public bool ShouldExitCurrentIteration { get; }\
-}
-
-You can use break or continue inside Parallel.For and Parallel.ForEach
-like regular sequential ones with the help of ParallelLoopState object.
-
-Parallel.For(0, 200, (value, state) =\> {
-
-if (value == 10) state.Break();
-
-Console.WriteLine(value);
-
+```csharp
+Parallel.For(0, 200, (i, state) => {
+    if (i == 10) state.Break();
+    Console.WriteLine(i);
 });
+```

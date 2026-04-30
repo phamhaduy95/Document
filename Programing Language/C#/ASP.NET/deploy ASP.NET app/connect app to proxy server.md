@@ -1,60 +1,55 @@
-proxy server provides these viable benefits
+# Hosting ASP.NET Core with Reverse Proxies (IIS & Nginx)
 
-- Security---Reverse proxies are specifically designed to be exposed to
-  malicious internet traffic, so they're typically well-tested and
-  battle-hardened.
+A reverse proxy is a server that sits in front of your web application and forwards client requests to it. Using a reverse proxy like IIS or Nginx provides several critical benefits for production environments.
 
-- Performance---You can configure reverse proxies to provide performance
-  improvements by aggressively caching responses to requests.
+---
 
-- Process management---An unfortunate reality is that apps sometimes
-  crash. Some reverse proxies can act as monitors/schedulers to ensure
-  that if an app crashes, the proxy can automatically restart it.
+## 1. Why Use a Reverse Proxy?
+- **Security**: Reverse proxies are specifically designed to be exposed to malicious internet traffic and are typically more battle-hardened than internal web servers.
+- **Performance**: You can configure proxies to handle SSL/TLS termination and aggressively cache responses to improve speed.
+- **Process Management**: Proxies can act as monitors; if your application crashes, the proxy can automatically restart it.
+- **Support for Multiple Apps**: A single server can host multiple apps on different domains (e.g., `api.myapp.com` and `web.myapp.com`) by using the proxy to route traffic based on the hostname.
 
-- Support for multiple apps---It's common to have multiple apps running
-  on a single server. Using a reverse proxy makes it easier to support
-  this scenario by using the host name of a request to decide which app
-  should receive the request.
+---
 
-Hosting with ISS server
+## 2. Hosting with IIS (Windows)
+To host on Windows, you must install the **ASP.NET Core Hosting Bundle**, which includes the .NET Runtime and the **IIS AspNetCore Module**.
 
-The first step in preparing IIS to host ASP.NET Core applications is to
-install the\
-ASP.NET Core Windows Hosting Bundle.3 This includes several components
-needed\
-to run .NET apps:\
-ϒ *The .NET Runtime* ---Runs your .NET 5.0 application\
-ϒ *The ASP.NET Core Runtime*---Required to run ASP.NET Core apps\
-ϒ *The IIS AspNetCore Module*---Provides the link between IIS and your
-app, so thatIIS can act as a reverse proxy
+### Configuration Steps:
+1.  **Application Pool**: Create a new Application Pool in IIS. Set the **.NET CLR version** to **No Managed Code**, as IIS only acts as a proxy and doesn't run the .NET code directly.
+2.  **Folder Permissions**: You must grant the Application Pool identity permission to access your app's files. In File Explorer, add `IIS AppPool\YourAppPoolName` to the folder's security settings.
+3.  **IIS Integration**: This is enabled by default in modern ASP.NET Core templates via `WebApplication.CreateBuilder(args)`.
 
-Once you've installed the bundle, you need to configure an *application
-pool* in IIS for\
-your ASP.NET Core apps.
+---
 
-An *application pool* in IIS represents an application process. You\
-can run each app in IIS in a separate application pool to keep them
-isolated\
-from one another
+## 3. Hosting with Nginx (Linux)
+On Linux, it is common to use **Nginx** as a reverse proxy for the **Kestrel** web server.
 
-![](media/image1.png){width="6.5in" height="1.9569444444444444in"}
+### Important: Forwarded Headers
+Because the proxy sits between the user and your app, your app will see the proxy's IP address instead of the user's. To fix this, you must configure **Forwarded Headers** in `Program.cs`.
 
-![](media/image2.png){width="6.5in" height="3.0590277777777777in"}
+```csharp
+using Microsoft.AspNetCore.HttpOverrides;
 
-You need to carry out one more critical setup step before you can
-publish and run\
-your app: you must grant permissions for the NetCore app pool to access
-the path\
-where you'll publish your app. To do this, right-click the folder that
-will host your app\
-in Windows File Explorer and choose Properties. In the Properties dialog
-box, choose\
-Security \> Edit \> Add. Enter IIS AppPool\\NetCore in the text box
+var app = builder.Build();
 
-IIS integration is added by default when you use the
-IHostBuilder.ConfigureWebHostDefaults() helper method used in the
-default templates. If you're customizing your own HostBuilder, you need
-to ensure you add IIS integration with the\
-UseIIS() or UseIISIntegration() extension method.
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 
-Hosting with NginX
+app.UseAuthentication();
+```
+
+---
+
+## 4. Deployment Strategies
+Before moving your code to a server, you must **Publish** it to create a self-contained or framework-dependent set of files.
+
+- **Framework-Dependent**: Requires the .NET Runtime to be pre-installed on the server. The published files are small.
+- **Self-Contained**: Includes the .NET Runtime within the published folder. This allows the app to run on a server that doesn't have .NET installed, but results in a much larger deployment size.
+
+**Publish via CLI:**
+```bash
+dotnet publish -c Release -o ./publish
+```

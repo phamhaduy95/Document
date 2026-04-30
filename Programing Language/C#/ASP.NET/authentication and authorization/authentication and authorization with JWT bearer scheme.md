@@ -1,242 +1,100 @@
-**Authentication and Authorization with JWT Bearer**
+# JWT Bearer Authentication in ASP.NET Core
 
-1.  **Understand JWT bearer**
+JSON Web Token (JWT) is an open standard for securely transmitting information between parties as a JSON object. It is the preferred method for authenticating users in modern APIs and Single Page Applications (SPAs) where traditional cookies are not suitable.
 
-**1.1 Introduction**
+---
 
-In the modern age of internet, server does not only serve data for
-client in browser but across many kinds of clients and devices. Relying
-on authentication cookie is not suitable as it is only support in
-browser client. JSON Web Token or JWT arises as the standard approach
-for handling authentication and authorization for a web app. The diagram
-below illustrates how the JWT is generated and works.
+## 1. What is a JWT?
+A JWT is a string consisting of three parts separated by dots (`.`):
 
-![](media/image1.png){width="6.520574146981628in"
-height="4.28307852143482in"}
+1.  **Header**: Contains metadata about the token type (JWT) and the hashing algorithm used (e.g., HMAC SHA256).
+2.  **Payload**: Contains the **Claims**—actual statements about the user (e.g., Name, Email, Roles) and token metadata (e.g., Expiration time).
+3.  **Signature**: A hash of the encoded header, payload, and a server-side secret key. This prevents tampering; if the payload is changed, the signature will no longer match.
 
-The client sends the request for authentication which may consists of
-sign in data such as username or email and most importantly password.
+---
 
-The server then validates user login data if it finds the login request
-is valid then it send back the HTTP response which includes a token.
+## 2. Configuring JWT in Program.cs
+To use JWT, you must install the **`Microsoft.AspNetCore.Authentication.JwtBearer`** NuGet package.
 
-Then client will keep that token and inject its in the header
-(specifically the *authorization* header) of any further request.
+```csharp
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
-**1.2 JWT format**
-
-WT is represented as a combination of three base64url encoded parts
-concatenated with period (\'.\') characters and comprises the following
-three sections:
-
-- Header
-
-- Payload
-
-- Signature
-
-**Header Section**
-
-This section provides metadata about the type of data and the algorithm
-to be used to encrypt the data that is to be transferred. Two properties
-"*typ*" and "*alg*" are used to indicate its type of signature and which
-encryption algorithm is used for encoding and decoding the token
-
-> {
->
-> \"*typ*\": \"JWT\",
->
-> \"*alg*\": \"HS256\"
->
-> }
-
-**Payload**
-
-The payload represents the actual information in JSON format that is to
-be transmitted over the wire.
-
-The payload typically may contain claims, the identity information of
-the user, the allowed permissions. The payload uses properties as the
-reserved ones.
-
-- *iss:* This represents the issuer of the token.
-
-- *sub:* This is the subject of the token.
-
-- *aud*: This represents the audience of the token.
-
-- *exp*: This is used to define token expiration.
-
-- *nbf*: This is used to specify the time before which the token must
-  not be processed.
-
-- *iat*: This represents the time when the token was issued.
-
-- *jti:* This represents a unique identifier for the token.
-
-You can also use custom claims, which can be added to the token using a
-rule. The code snippet given below illustrates a simple payload.
-
-> {
->
-> \"*sub*\": \"*1234567890*\",
->
-> \"*name*\": \"*Joydip* *Kanjilal*\",
->
-> \"*admin*\": true,
->
-> \"*jti*\": \"*cdafc246-109d-4ac9-9aa1-eb689fad9357*\",
->
-> \"*iat*\": 1611497332,
->
-> \"*exp*\": 1611500932
->
-> }
-
-**Signature**
-
-The signature adheres to the JSON Web Signature (JWS) specification and
-is used to verify the integrity of the data transferred over the wire.
-It comprises a hash of the header, the payload, and the secret, and is
-used to ensure that the message was not changed while being transmitted.
-The final signed token is created by adhering to the JSON Web Signature
-(JWS) specification. The encoded JWT header and as well as the encoded
-JWT payload is combined and then it\'s signed using a strong encryption
-algorithm such as HMAC SHA 256.
-
-2.  **JWT bearer scheme in ASP.NET core**
-
-To integrate JWT bearer authentication in your project, install NUGET
-packet Microsoft.AspNetCore.Authentication.JwtBearer. Then in your main
-entry program.cs, add JWT authentication scheme through authentication
-middleware configuration.
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme
-,options =\>
-
+builder.Services.AddAuthentication(options => {
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
 {
-
-option.RequireHttpsMetadata = true;
-
-option.SaveToken = true;
-
-option.Author = ""
-
-option.TokenValidationParameters = new TokenValidationParameters()
-
-{
-
-ValidateIssuer = true,
-
-ValidateAudience = true,
-
-ValidateLifetime = true,
-
-ValidateIssuerSigningKey = true,
-
-ValidAudience = builder.Configuration\[\"Jwt:Audience\"\],
-
-ValidIssuer = builder.Configuration\[\"Jwt:Issuer\"\],
-
-IssuerSigningKey = new
-SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration\[\"Jwt:Key\"\]))
-
-};
-
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+    };
 });
+```
 
-You can add JWTBearer scheme as the default scheme for authentication,
-and use AddJWTBearer method for configuring this scheme further through
-options pattern. There some noticeable options you should consider:
+---
 
-- RequireHttpsMetadata: when set is true will requires the token
-  transferred via HTTPs for more strong security. In the deployment
-  setting, this option must be set to true.
+## 3. Issuing a Token (Login Action)
+When a user provides valid credentials, the server creates a token and returns it to the client.
 
-- Audience: represents the intended recipient of the incoming token or
-  the resource that the token grants access to. If the value specified
-  in this parameter doesn't match the aud parameter in the token, the
-  token will be rejected because it was meant to be used for accessing a
-  different resource. you can specific this inside the
-  TokenValidationParameters object.
-
-- SaveToken: Allow to save the token inside the
-  AuthenticationProperties, which can be retrieved from elsewhere within
-  your app through HttpContext.GetTokenAsync().
-
-- Author: is the address of the token-issuing authentication server. The
-  JWT bearer authentication middleware will use this URI to find and
-  retrieve the public key that can be used to validate the token's
-  signature. For example: option.Authority = \"http://localhost:5000/\";
-
-- TokenValidationParemeters option must be always provided when the
-  author options are not given, as the ASP.NET will use it to specify
-  more advanced options for how JWT tokens will be validated which can
-  normally be found in token-issuing server. Like the example above, the
-  issuer, audience and expired time are set required for validation. We
-  also provide the list of valid value for issuer, audience and most
-  importantly the proper key for decoding the token.
-
-**Creating API for granting Token to user**
-
-In the first section, we did discuss about the token that return when
-user try to sign in to your web app. The sample code below tells us some
-detail step for composing the appropriate token based on all options we
-add in the authentication middleware.
-
-public async Task\<LoginResult\> Login(LoginModel model) {
-
-var user = await \_userManager.FindByEmailAsync(model.Email);
-
-if (user == null) return LoginResult.GetFailResult(\"user not found\");
-
-var result = await \_signInManager.PasswordSignInAsync(user,
-model.Password, false, false);
-
-if (!result.Succeeded) return LoginResult.GetFailResult(\"wrong
-password\");
-
-List\<Claim\> claims = new List\<Claim\>()
-
+```csharp
+public string GenerateJwtToken(IdentityUser user)
 {
+    var claims = new List<Claim>
+    {
+        new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        new Claim(ClaimTypes.NameIdentifier, user.Id),
+    };
 
-new Claim(\"userId\",user.Id.ToString()),
+    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-new Claim(ClaimTypes.Name, user.UserName),
+    var token = new JwtSecurityToken(
+        issuer: _config["Jwt:Issuer"],
+        audience: _config["Jwt:Audience"],
+        claims: claims,
+        expires: DateTime.UtcNow.AddDays(7),
+        signingCredentials: creds
+    );
 
-new Claim(\"PhoneNumber\", user.PhoneNumber),
-
-new Claim(ClaimTypes.Email, user.Email),
-
-};
-
-var claimIdentity = new ClaimsIdentity(claims);
-
-var key = new
-SymmetricSecurityKey(Encoding.UTF8.GetBytes(\_configuration\[\"Jwt:Key\"\]));
-
-var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-var token = new JwtSecurityToken
-
-(
-
-\_configuration\[\"Jwt:Issuer\"\],
-
-\_configuration\[\"Jwt:Audience\"\],
-
-claimIdentity.Claims,
-
-expires: DateTime.UtcNow.AddDays(1),
-
-signingCredentials: signIn);
-
-string strToken = new JwtSecurityTokenHandler().WriteToken(token);
-
-return LoginResult.GetSuccessfulResult(strToken);
-
+    return new JwtSecurityTokenHandler().WriteToken(token);
 }
+```
 
-**Add authorization for JWT bearer.**
+---
 
-To make ASP.NET authorize any endpoint using JWT bearer scheme,
+## 4. Consuming the Token
+The client must include the token in the **Authorization** header for every subsequent request.
+
+```http
+Authorization: Bearer <your_jwt_token_here>
+```
+
+---
+
+## 5. Protecting Endpoints
+Once configured, use the **`[Authorize]`** attribute to protect your API controllers.
+
+```csharp
+[Authorize] // Requires a valid JWT Bearer token
+[ApiController]
+[Route("api/[controller]")]
+public class DataController : ControllerBase
+{
+    [HttpGet]
+    public IActionResult GetPrivateData() => Ok("Secret content");
+}
+```
+
+> [!WARNING]
+> Never store sensitive information like passwords in the JWT payload, as the header and payload are only Base64 encoded and can be easily read by anyone who has the token. The signature only ensures **integrity**, not **secrecy**.

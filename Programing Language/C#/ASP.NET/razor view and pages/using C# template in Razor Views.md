@@ -1,46 +1,81 @@
-the razor View is represented by .cshtml file which is a special kind of
-HTML that allow developer injected C# statement or external data from
-Controller. This help developer dynamically modifies the content and
-data inside the HTML according to the user request.
+# C# and Razor Syntax in Views
 
-Razor view support these techniques for injecting C# statement.
+Razor is a powerful markup syntax that allows you to embed server-side C# code directly into your HTML pages. It provides a seamless way to create dynamic content based on user data or application state.
 
-- Insert variable:
+---
 
-> \<p\>city: \@address.city \<p\>
+## 1. Basic Expressions
+The **`@`** symbol is the transition character between HTML and C#.
 
-- Insert result from one C# statement:
+- **Implicit Expressions**: Use `@` followed by a variable or property name to output its value.
+  ```html
+  <p>The current year is @DateTime.Now.Year</p>
+  ```
+- **Explicit Expressions**: Use **`@(...)`** when you need to perform a calculation or a method call that isn't a simple property access.
+  ```html
+  <p>The total price is: @(Model.Price * Model.Quantity)</p>
+  ```
 
-> \<p\> the sum is @(num1 + num2) \<p\>
+---
 
-- Code block: perform complex C# statement or define some important View
-  properties such as ViewData, Layout. Nothing in code block is written
-  to HTML output.
+## 2. Razor Code Blocks
+Use **`@{ ... }`** to write a block of C# code that doesn't output HTML immediately. This is commonly used for defining variables or setting page metadata.
 
-> \@{
->
-> ViewData\[\"Title\"\] = \"Home Page\";
->
-> }
+```cshtml
+@{
+    var userStatus = Model.IsActive ? "Online" : "Offline";
+    Layout = "_MainLayout";
+    ViewData["Title"] = "User Profile";
+}
 
-- Loop and condition statement.
+<p>Status: @userStatus</p>
+```
 
-> //if statement:
->
-> \@if (Model.IsComplete)\
-> {\
-> \<strong\>Well done, you're all done!\</strong\>\
-> }
->
-> //for statement:
->
-> \<ul\>\
-> \@foreach (var task in Model.Tasks)\
-> {\
-> \<li\>@task\</li\>\
-> }\
-> \</ul\>
+---
 
-- import model class
+## 3. Control Structures
+Razor supports all standard C# control flow statements, allowing you to build complex logic directly in the view.
 
-\@model WebApplication1.ViewModels.AddressViewModel
+### Conditionals (`@if`)
+```cshtml
+@if (Model.StockCount > 0)
+{
+    <span class="text-success">In Stock</span>
+}
+else
+{
+    <span class="text-danger">Out of Stock</span>
+}
+```
+
+### Loops (`@foreach`, `@for`)
+```cshtml
+<ul>
+    @foreach (var hobby in Model.Hobbies)
+    {
+        <li>@hobby</li>
+    }
+</ul>
+```
+
+---
+
+## 4. Directives
+Directives appear at the top of the file and provide instructions to the Razor engine.
+
+| Directive | Purpose |
+| :--- | :--- |
+| **`@model`** | Specifies the type of the data object passed to the view. |
+| **`@using`** | Imports a namespace so you don't have to type full class names. |
+| **`@inject`** | Injects a service from the Dependency Injection container into the view. |
+
+```cshtml
+@model UserProfile
+@using MyProject.Helpers
+@inject IConfiguration Configuration
+
+<h1>Welcome to @Configuration["AppName"]</h1>
+```
+
+> [!TIP]
+> If you need to render plain text inside a C# code block without using HTML tags, use the **`<text>`** tag or the **`@:`** prefix to tell Razor to stop interpreting the line as code.

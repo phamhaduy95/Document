@@ -1,91 +1,79 @@
-*19.1.1 Creating simple endpoints with the Run extensi*
+# Custom Middleware in ASP.NET Core
 
-You can use the Run extension method to build a simple middleware
-component\
-that always generates a response. This extension takes a single lambda
-function that\
-runs whenever a request reaches the component. The Run extension always
-generates. a response, so no middleware placed after it will ever
-execute. For that reason, you\
-should always place the Run middleware last in a middleware pipeline.
+Middleware is software that is assembled into an application pipeline to handle requests and responses. Each component chooses whether to pass the request to the next component in the pipeline.
 
-TIP Remember, middleware runs in the order you add them to the
-pipeline.\
-If a middleware component handles a request and generates a response,
-later\
-middleware will never see the request
+---
 
-The Run extension method provides access to the request in the form of
-the HttpContext object you saw in chapter 3. This contains all the
-details of the request in the\
-Request property, such as the URL path, the headers, and the body of the
-request. It\
-also contains a Response property you can use to return a response
+## 1. Using the `Run` Extension
+The `Run` extension method is used to add a terminal middleware component to the pipeline. Because it does not call the next middleware, it should always be placed at the end of the pipeline.
 
-![](media/image1.png){width="6.5in" height="2.415277777777778in"}
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+var app = builder.Build();
 
-*3 Adding to the pipeline with the Use extension*
-
-With the Use extension, you have control over when, and if, you call the
-rest of the middleware pipeline. But it's important to note that you
-generally shouldn't modify the Response object after calling next().
-Calling next() runs the rest of the middleware pipeline, so a subsequent
-middleware may start streaming the response to the browser. If you try
-to modify the response *after* executing the pipeline, you may end up\
-corrupting the response or sending invalid data.
-
-Don't *modify* the Response object after calling next(). Also, don't
-call\
-next() if you've written to the Response.Body; writing to this Stream
-can trigger\
-Kestrel to start streaming the response to the browser, and you could
-cause\
-invalid data to be sent. You can generally *read* from the Response
-object safely;\
-for example, to inspect the final StatusCode or ContentType of the
-response.
-
-*Building a custom middleware component.*
-
-In some cases you may need to use DI to inject services and use them to\
-handle a request. You can inject singleton services into the constructor
-of your middleware component, or you can inject services with any
-lifetime into the Invoke\
-method of your middleware,
-
-public class ExampleMiddleware
-
+app.Run(async context =>
 {
+    await context.Response.WriteAsync("Hello from the terminal middleware!");
+});
 
-private readonly RequestDelegate \_next;
+app.Run();
+```
 
-private readonly ServiceA \_a;
+---
 
-public HeadersMiddleware(RequestDelegate next, ServiceA a)
+## 2. Using the `Use` Extension
+The `Use` extension allows you to perform logic both before and after the next middleware in the pipeline.
 
+```csharp
+app.Use(async (context, next) =>
 {
+    // Logic before the next middleware
+    Console.WriteLine("Request passing through...");
 
-\_next = next;
+    await next(); // Call the next middleware
 
-\_a = a;
+    // Logic after the next middleware
+    Console.WriteLine("Response passing back...");
+});
+```
 
-}
+> [!WARNING]
+> Do not modify the `Response` object after calling `next()`. Subsequent middleware (like the static file middleware or MVC) may have already started streaming the response to the client.
 
-public async Task Invoke(
+---
 
-HttpContext context, ServiceB b, ServiceC c)
+## 3. Building a Custom Middleware Class
+For more complex logic, you can create a dedicated middleware class. This makes your code cleaner and allows for better dependency management.
 
+### Dependency Injection in Middleware
+- **Constructor Injection**: Only for **Singleton** services. Middleware is instantiated once when the application starts, so it remains for the app's lifetime.
+- **Method Injection (`Invoke` or `InvokeAsync`)**: For **Scoped** or **Transient** services. This allows you to access services that are created per-request.
+
+```csharp
+public class CustomMiddleware
 {
+    private readonly RequestDelegate _next;
+    private readonly ISingletonService _singleton;
 
-// use services a, b, and c
+    public CustomMiddleware(RequestDelegate next, ISingletonService singleton)
+    {
+        _next = next;
+        _singleton = singleton;
+    }
 
-// and/or call \_next.Invoke(context);
-
+    public async Task InvokeAsync(HttpContext context, IScopedService scoped)
+    {
+        // Perform logic using the scoped service
+        scoped.DoWork();
+        
+        await _next(context);
+    }
 }
+```
 
-}
+### Registration
+Register your custom middleware in `Program.cs`:
 
-ASP.NET Core creates the middleware only once for the lifetime of your
-app, so any dependencies injected in the constructor must be singletons.
-If you need to use scoped or transient dependencies, inject them into
-the Invoke method.
+```csharp
+app.UseMiddleware<CustomMiddleware>();
+```

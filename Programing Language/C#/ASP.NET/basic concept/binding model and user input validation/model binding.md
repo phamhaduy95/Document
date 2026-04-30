@@ -1,160 +1,83 @@
-MODEL BINDING
+# Model Binding in ASP.NET Core
 
-1.  Introduction to Model binding
+Model binding is the process that automatically extracts data from an incoming HTTP request (from the URL, body, or headers) and maps it to action method parameters or page model properties. This eliminates the need for manual parsing of the request.
 
-The incoming HTTP request sent by client often contains some important
-data which can locate in URL query string, in header as name-value pair
-or JSON data within request's body. ASP.NET support binding model
-mechanism that automatically extracts all related data contained inside
-the request and bind data to a variable or an object and then passed it
-into the Page Handler or Action method. This powerful mechanism can be
-applied to Razor Page Model, Action in Controller in MVC or API. For
-example:
+---
 
-For MVC:
+## 1. How Model Binding Works
+When a request matches a route, the model binder scans the HTTP request for values that match the names of the parameters in your handler method.
 
-\[Route(\"api/\[controller\]\")\]
+```csharp
+[HttpGet("api/users/{id}")]
+public IActionResult GetUser(string id)
+{
+    // If the URL is api/users/0115, the variable 'id' will be bound to "0115"
+    return Ok($"User data for: {id}");
+}
+```
 
-\[ApiController\]
+---
 
-public class UserController : ControllerBase{
+## 2. Binding Complex Types
+For requests containing multiple data fields (such as a form submission or a JSON payload), you can bind the data to a plain old CLR object (POCO).
 
-\[HttpGet(\"{id}\")\]
+### Requirements for Binding Classes:
+- The class must be **public**.
+- It must have a **public parameterless constructor**.
+- Target properties must be **public** and have **public setters**.
 
-public IActionResult GetUser(string id){
-
-var message = \$\"student {id} data\";
-
-return Ok(message);
-
+```csharp
+public class UserViewModel
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+    public int Age { get; set; }
 }
 
+[HttpPost("api/students")]
+public IActionResult AddStudent(UserViewModel user)
+{
+    // ASP.NET Core automatically instantiates and populates the 'user' object
+    return Ok(user);
 }
+```
 
-The parameter id of GetUser Action is a binding model that requires data
-from HTTP request. When user request URL: "api/user/0115", the blinding
-model process is executed to scan through the HTTP request and look for
-an any id parameter within this request.
+---
 
-As the binding model id shares an identical name with id variable
-parameter from route template, the value "0115" extracted from URL is
-then populated inside binding model id and passed into GetUser Action.
+## 3. Binding Sources
+By default, ASP.NET Core looks for data in the following order:
+1.  **Form values**: Data sent in the body of a POST request via a form.
+2.  **Route values**: Values obtained from URL segments (e.g., `{id}`).
+3.  **Query string**: Key-value pairs passed at the end of the URL (e.g., `?name=test`).
 
-Razor page Model:
+### Explicit Source Attributes
+You can force the model binder to look in a specific part of the request using these attributes:
 
-2.  Binding Complex types
+| Attribute | Source |
+| :--- | :--- |
+| **`[FromRoute]`** | Values from the URL path. |
+| **`[FromQuery]`** | Values from the URL query string. |
+| **`[FromForm]`** | Values from a posted form body. |
+| **`[FromBody]`** | Values from the request body (typically JSON or XML). |
+| **`[FromHeader]`** | Values from specific HTTP headers. |
 
-All previous example so far in this document use simple parameters as a
-binding model. For more complicated data which consists of many pieces
-of information in one single HTTP request, you need to bind this data to
-.NET object. To do so, you firstly have to declare the type to represent
-the binding model.
-
-public class UserViewModel{
-
-public Guid Id { get; set; }
-
-public string Name { get; set; }
-
-public int Age { get; set; }
-
-public string TeleNumber { get; set; }
-
+```csharp
+[HttpPost]
+public IActionResult UpdateProfile([FromBody] ProfileData data, [FromHeader("User-Agent")] string browser)
+{
+    // 'data' comes from the JSON body, 'browser' comes from the header
+    return Ok();
 }
+```
 
-Then make it as the input parameter of Action method.
+---
 
-\[HttpPost(\"student\")\]
+## 4. Handling Missing Data
+If no matching value is found for a parameter or property:
+- **Nullable types**: Set to `null`.
+- **Non-nullable value types**: Set to their default value (e.g., `0` for `int`, `false` for `bool`).
+- **Complex types**: An instance is created using the default constructor, but its properties are not populated.
+- **Arrays**: Set to `Array.Empty<T>()`, except for `byte[]` which is set to `null`.
 
-public IActionResult AddStudent(UserViewModel user){
-
-Console.WriteLine(\$\"Add user {user.Id} name {user.Name}, age:
-{user.Age}\");
-
-return Ok(user);
-
-}
-
-Warning: The class corresponding to the binding model must be public,
-have default public constructor (parameterless constructor) and contain
-public and settable properties.
-
-Apart from primitive type, you can bind to collections, lists, and
-dictionaries as well.
-
-For targets that are Collection or List of simple types, model binding
-looks for matches to parameter name or property name. For example:
-
-\[HttpPost(\"/documents\")\]
-
-public IActionResult AddListOfDocuments(int\[\] Documents)
-
-You could then POST data using query string to this method by providing
-values in several different formats:
-
-- Documents\[0\]=10&Documents\[1\]=20: The parameter name is used along
-  with the array expression.
-
-- \[0\]=2&\[1\]=18: The parameter name is omitted and index can be used
-  to represent the collection's elements.
-
-- Documents=20&Documents=20: Alternatively, you can omit index instead
-  and keep the parameter name.
-
-Warning: the index for numbering elements should start from 0 and have
-no gap between (for instance, only element 0 and element 2 is given
-value but no element 1 ).
-
-3.  Binding source
-
-By default, ASP.NET Core uses three different binding sources when
-creating your binding models. It looks through each of these in order
-and takes the first value it finds (if any) that matches the name of the
-binding model:
-
-- *Form values*---Sent in the body of an HTTP request when a form is
-  sent to the server using a POST.
-
-- *Route values*---Obtained from URL segments or through default values
-  after matching a route, as you saw in chapter 5.
-
-- *Query string values*---Passed at the end of the URL, not used during
-  routing.
-
-We can override this default behavior by specifying the exact source for
-finding data:
-
-- \[FromQuery\] - Gets values from the query string.
-
-- \[FromRoute\] - Gets values from route data.
-
-- \[FromForm\] - Gets values from posted form fields.
-
-- \[FromBody\] - Gets values from the request body.
-
-- \[FromHeader\] - Gets values from HTTP headers.
-
-For example:
-
-\[HttpPost(\"student\")\]
-
-public IActionResult AddStudent(\[FromBody\] UserViewModel user)
-
-4.  **No source for a model property**
-
-By default, a model state error isn\'t created if no value is found for
-a model property. The property is set to null or a default value:
-
-- Nullable simple types are set to null.
-
-- Non-nullable value types are set to default(T). For example, a
-  parameter int id is set to 0.
-
-- For complex Types, model binding creates an instance by using the
-  default constructor, without setting properties.
-
-- Arrays are set to Array.Empty\<T\>(), except that byte\[\] arrays are
-  set to null.
-
-This behavior can be modified with the model data validation which is
-different topic for document.
+> [!TIP]
+> To ensure that data is not missing and is valid, you should use **Model Validation** attributes like `[Required]` or `[StringLength]`.
