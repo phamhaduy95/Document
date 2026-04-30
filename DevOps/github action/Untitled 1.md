@@ -1,0 +1,1 @@
+The runner then starts listening for jobs via the message queue HTTP long poll.

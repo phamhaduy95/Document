@@ -1,0 +1,1 @@
+[Environment]::SetEnvironmentVariable('ASPNETCORE_ConnectionStrings_DefaultConnection', 'Data Source=LAPTOP-KLL07NQB;Initial Catalog=ToDoApp;User Id=sa;Password=123456;MultipleActiveResultSets=true;', 'User');

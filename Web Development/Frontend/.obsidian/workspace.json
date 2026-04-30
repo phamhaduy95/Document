@@ -1,0 +1,241 @@
+{
+  "main": {
+    "id": "a081d3d4308ffefb",
+    "type": "split",
+    "children": [
+      {
+        "id": "3747a1485ebaf3b6",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "c54fd10e39cdb944",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Canvas graphic/antd X6.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "antd X6"
+            }
+          },
+          {
+            "id": "864cf45351f57944",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Front-end Testing/testing method.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "testing method"
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "c945a315f0b9b339",
+    "type": "split",
+    "children": [
+      {
+        "id": "9aedf85ebbb30b9a",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "6cecdd8a0f6fa8f2",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "f844a19aa2ae0b70",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "0a8d780e11920416",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "15eed70a1e8636f4",
+    "type": "split",
+    "children": [
+      {
+        "id": "f18a0e79744e94dd",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "aa9f63e0697eb42c",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "project/React UI component docs.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for React UI component docs"
+            }
+          },
+          {
+            "id": "efde30c19b459bea",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "project/React UI component docs.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from React UI component docs"
+            }
+          },
+          {
+            "id": "d69e4817e170a4a8",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "86dd4f2d903b3922",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "784aaa3d503ef359",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "project/React UI component docs.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of React UI component docs"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "864cf45351f57944",
+  "lastOpenFiles": [
+    "writing.md",
+    "Front-end Testing/testing method.md",
+    "Front-end Testing/Testing pyramid.md",
+    "Markdown.md",
+    "Development tools/Vite/Resolve named import in Vite.md",
+    "Interview/Behavioral question/Behavioral Question.md",
+    "Interview/Framework/React.md",
+    "Interview/Framework/Vue.md",
+    "Interview/Interview question metadata.md",
+    "Development tools/storybook.md",
+    "Development tools/PNPM.md",
+    "Development tools/Turborepo/turborepo.md",
+    "Chart/Chart.md",
+    "Chart/D3.js.md",
+    "Chart/Untitled 2.md",
+    "Chart/Untitled.md",
+    "Canvas graphic/Canvas graphic.md",
+    "Canvas graphic/antd X6.md",
+    "Web General Knowledge/Accessibility/Accessibility.md",
+    "Chart/svg.md",
+    "Web General Knowledge/SVG/Untitled.md",
+    "Web General Knowledge/SVG",
+    "Development tools/Untitled 3.md",
+    "React/Techniques/React environment variables.md",
+    "Vue/Fundamental",
+    "Vue/Frameworks",
+    "React/Techniques/Import SVG as Component.md",
+    "React/Techniques/Component design.md",
+    "Vue/Component defination.md",
+    "React/Techniques",
+    "React/Frameworks",
+    "React/Fundamental",
+    "Web General Knowledge/Crossed-browser",
+    "Web General Knowledge/Web Storages",
+    "Web General Knowledge/Cascade Style Sheet (CSS)",
+    "Web General Knowledge/Web worker",
+    "Untitled.canvas"
+  ]
+}

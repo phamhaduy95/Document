@@ -1,0 +1,1 @@
+To ensure that the data properties your service uses to exchange information are well understood by a wide range of other services (even ones you did not create), you should employ well-documented, widely known data property names as part of your external interface (API).

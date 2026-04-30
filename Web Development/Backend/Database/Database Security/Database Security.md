@@ -1,0 +1,1 @@
+query optimization: The activity of choosing an efficient execution strategy for processing a query.
