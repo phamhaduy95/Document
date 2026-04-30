@@ -45,4 +45,4 @@ replace all such dependencies with test doubles.
 A _mock_ is a special kind of test double that allows you to examine interactions between the system under test and its collaborators.
 
 _A test should tell a story about the problem your code helps to solve, and this story should  
-be cohesive and meaningful to a non-programmer_
+be cohesive and meaningful to a non-programmer

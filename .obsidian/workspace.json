@@ -1,14 +1,14 @@
 {
   "main": {
-    "id": "341d7df8944e13a9",
+    "id": "3a272ea6704d673e",
     "type": "split",
     "children": [
       {
-        "id": "48136301626275a7",
+        "id": "ea4b4526b60f8230",
         "type": "tabs",
         "children": [
           {
-            "id": "14422f8b4bb364cc",
+            "id": "679425194af67288",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -23,15 +23,15 @@
     "direction": "vertical"
   },
   "left": {
-    "id": "f34bc2d2273dca67",
+    "id": "193e9b0d53d5cd89",
     "type": "split",
     "children": [
       {
-        "id": "c52defcbe501767f",
+        "id": "d8ec1dbd9430ff65",
         "type": "tabs",
         "children": [
           {
-            "id": "d682888f18e35dad",
+            "id": "c1e887c1e34c8907",
             "type": "leaf",
             "state": {
               "type": "file-explorer",
@@ -44,7 +44,7 @@
             }
           },
           {
-            "id": "b0eff00e616d0335",
+            "id": "f7aadfe565bc193c",
             "type": "leaf",
             "state": {
               "type": "search",
@@ -61,7 +61,7 @@
             }
           },
           {
-            "id": "637d3ebb6fdd03fb",
+            "id": "19f383481ed84c19",
             "type": "leaf",
             "state": {
               "type": "bookmarks",
@@ -77,20 +77,19 @@
     "width": 300
   },
   "right": {
-    "id": "76e56a54fbd6d3f0",
+    "id": "36a7e79574d06f23",
     "type": "split",
     "children": [
       {
-        "id": "57dc5bf03e2caa6c",
+        "id": "cbe77dcfe1f13a93",
         "type": "tabs",
         "children": [
           {
-            "id": "a86a105a52a4d85b",
+            "id": "cc5c2aa958853b09",
             "type": "leaf",
             "state": {
               "type": "backlink",
               "state": {
-                "file": "linux important directory.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -100,25 +99,24 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for linux important directory"
+              "title": "Backlinks"
             }
           },
           {
-            "id": "b7a51668dc5dbc18",
+            "id": "ca95c7f45e742574",
             "type": "leaf",
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "linux important directory.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from linux important directory"
+              "title": "Outgoing links"
             }
           },
           {
-            "id": "72ccb44f629fb200",
+            "id": "868458bb415d5278",
             "type": "leaf",
             "state": {
               "type": "tag",
@@ -133,7 +131,7 @@
             }
           },
           {
-            "id": "d5e011dba226f005",
+            "id": "2aa830f7216c30d5",
             "type": "leaf",
             "state": {
               "type": "all-properties",
@@ -147,18 +145,17 @@
             }
           },
           {
-            "id": "8ba6034f36e4300a",
+            "id": "e5c71d927187a401",
             "type": "leaf",
             "state": {
               "type": "outline",
               "state": {
-                "file": "linux important directory.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of linux important directory"
+              "title": "Outline"
             }
           }
         ]
@@ -179,10 +176,6 @@
       "bases:Create new base": false
     }
   },
-  "active": "d682888f18e35dad",
-  "lastOpenFiles": [
-    "linux important directory.md",
-    "Untitled 1",
-    "Untitled"
-  ]
+  "active": "679425194af67288",
+  "lastOpenFiles": []
 }
