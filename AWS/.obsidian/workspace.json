@@ -1,0 +1,220 @@
+{
+  "main": {
+    "id": "dd1de14f22a1f9e2",
+    "type": "split",
+    "children": [
+      {
+        "id": "bc6aff268e07347c",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "2d3f7e43b577a0d4",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Cost Optimaztion/AWS Billing and Cost Management.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "AWS Billing and Cost Management"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "4891eccda5b883da",
+    "type": "split",
+    "children": [
+      {
+        "id": "70d6bc91f8ee6674",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "2a8f5f2ac430ef5c",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "8c60a9cdbe910f52",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "file:LAM",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "7dfb9fa76758d9dd",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 262.5
+  },
+  "right": {
+    "id": "17a7e91d0a305eba",
+    "type": "split",
+    "children": [
+      {
+        "id": "86122098a3ad972f",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "e854d566190e4fb8",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Computing/EC2/EC2 System Manager.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for EC2 System Manager"
+            }
+          },
+          {
+            "id": "83063c0fab893dc3",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Computing/EC2/EC2 System Manager.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from EC2 System Manager"
+            }
+          },
+          {
+            "id": "ea97198a681907c7",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "d6fee47d20bf6c15",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Computing/EC2/EC2 System Manager.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of EC2 System Manager"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "2a8f5f2ac430ef5c",
+  "lastOpenFiles": [
+    "Cost Optimaztion/image/AWS Cost Explorer Graph.png",
+    "Networking/Elastic Load Balancer (ELB)/AWS-DV2 Questions and Topic.md",
+    "2026-04-19.md",
+    "Untitled.base",
+    "Networking/AWS PrivateLink.md",
+    "Identity and Access Management/AWS Resource Access Manager.md",
+    "Cost Optimaztion/AWS Cost and Usage Report.md",
+    "Cost Optimaztion/AWS Compute Optimizer.md",
+    "Cost Optimaztion/AWS Budget.md",
+    "Database Service/DynamoDB/DynamoDB API.md",
+    "Database Service/DynamoDB/DynamoDB Stream.md",
+    "Database Service/DynamoDB/DynamoDB.md",
+    "Identity and Access Management/AWS Control Tower.md",
+    "Identity and Access Management/AWS Cognito.md",
+    "Deployment/AWS Beanstalk/AWS Beanstalk.md",
+    "General Concept/images/Multiple AZ hosting strategy.png",
+    "General Concept/images/Disaster Recovery Strategies.png",
+    "Migration Services/AWS Application Discovery Service.md",
+    "Container Orchestration/AWS Elastic Container Registry.md",
+    "Container Orchestration/Elastic Kubernetes Service (EKS)/Elastic Kubernetes Service (EKS).md",
+    "Cost Optimaztion/AWS Cost Explorer.md",
+    "Big Data/Untitled.md",
+    "test/README.md",
+    "test/test.md",
+    "AWS Free Tier.md",
+    "AWS AppFlow.md",
+    "Deployment/AWS App Runner.md",
+    "Deployment/AWS Proton.md",
+    "Deployment/AWS CloudFormation/CloudFormation Template.md",
+    "Monitoring And Logging/AWS X-ray",
+    "Integration Services/images/Pasted image 20251009232829.png",
+    "Integration Services/images/Pasted image 20251009173736.png",
+    "Integration Services/Simple Notification Service (SNS)",
+    "Integration Services/Simple Queue Service (SQS)",
+    "Integration Services/Kinesis Data Stream",
+    "Security/Security Scan",
+    "Security/AWS Key Management System",
+    "General Concept/images",
+    "Container Orchestration/Elastic Kubernetes Service (EKS)",
+    "Monitoring And Logging/AWS CloudWatch",
+    "Deployment/CI and CD tools/Images/Pasted image 20251103213143.png",
+    "Pasted image 20251103213224.png",
+    "Deployment/CI and CD tools/Images/Pasted image 20251103220402.png",
+    "Deployment/CI and CD tools/Images/Pasted image 20251103213224.png",
+    "Deployment/CI and CD tools/Images/Pasted image 20251103213207.png"
+  ]
+}

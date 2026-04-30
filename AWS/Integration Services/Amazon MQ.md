@@ -1,0 +1,2 @@
+
+**Amazon MQ** fits best with enterprises looking to migrate from traditional message brokers, supporting standard messaging protocols like AMQP and MQTT, along with [Apache ActiveMQ](http://activemq.apache.org/) and [RabbitMQ](https://www.rabbitmq.com/). It offers compatibility with legacy systems needing stable, reliable messaging without significant reconfiguration.

@@ -1,0 +1,8 @@
+- **Real-time stream processing**: Allows for the continuous processing of streaming data, enabling you to derive insights and react to events instantly.
+- **Time-series analytics**: You can perform time-based queries on streaming data, such as calculating metrics over tumbling or sliding windows.
+- **Anomaly detection**: The service includes built-in functions for identifying hotspots and anomalies in real-time data streams.
+- **Exactly-once processing**: Using Apache Flink applications, Kinesis Data Analytics ensures that data is processed exactly once, preventing duplicates even during application disruptions.
+- **Interactive development**: Kinesis Data Analytics Studio provides an interactive notebook environment for building and testing stream processing applications with real-time visualizations.
+- **Integration with AWS services**: It has deep integrations with other AWS services, including Kinesis Data Streams and Firehose for data ingestion, and destinations like Amazon S3, Redshift, and OpenSearch Service for output.
+- **Automatic scaling**: The service automatically scales to match the throughput of your data, so you don't need to manually provision or manage servers.
+- **Built-in connectors**: It includes more than ten connectors from Apache Flink, with the ability to build custom integrations.

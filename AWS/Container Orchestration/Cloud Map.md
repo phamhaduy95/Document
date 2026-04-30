@@ -1,0 +1,3 @@
+AWS Cloud Map is a fully managed service that enables you to discover and connect to resources in the cloud, on premises, or in hybrid environments. It acts as a service discovery and registry, allowing microservices, containers, serverless applications, and other resources to dynamically register themselves and be discovered by other services.
+
+Health Checks: Integrates with Amazon Route 53 for DNS-based health monitoring and automatic failover.
